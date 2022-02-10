@@ -1,5 +1,6 @@
 The Idea of this project is to get data straight from the QPCR abs quant analysis and turn it into something usefull to me. 
 
-Step 1: Program asks for your data file location. Input data file location. Hit enter.
-Step 2: Program will run your data through R and create graphs.
-Step 3: Grab graphs from folder labled results.
+Step 1: Run program QPCR_Data_Wrangler1.sh It will  ask for your data file pathway. Input it. Hit enter.
+Step 2: Program will ask you to input qualatative data into the new three columns that are blank. Recomend to use excel. Save this in a tab or comma delimiated file.
+Step 3: Run program QPCR_Data_Wrangler2.sh which will create graphs and place them in the output folder
+Step 4: Rejoice your high quality R graphs are made!
