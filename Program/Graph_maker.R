@@ -16,7 +16,12 @@ data_table_comma <- read.table(Args[1], sep = ",", header = TRUE)
 # # Delete me when done
 data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
 
-# Checking if columns are tabs or comma seperated
+# # Checking amount of columns in files
+# # data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
+columns_comma <- ncol(data_table_comma)
+columns_tabs <- ncol(data_table_tabs)
+
+# # Checking if columns are tabs or comma seperated
 if (columns_comma == 5){
   true_data <- data_table_comma
   print("Your file is comma seperated")
@@ -27,10 +32,7 @@ if (columns_comma == 5){
   print("Something is wrong with the file. Are you sure there is 5 columns seperated by tabs or commas")
 }
 
-# # Checking amount of columns in files
-# # data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
-columns_comma <- ncol(data_table_comma)
-columns_tabs <- ncol(data_table_tabs)
+
 
 # # calculating average of samples
 QPCRmeans = ddply(data_table_comma, .(Treatment), summarize, 
@@ -39,10 +41,10 @@ QPCRmeans2 <- subset(QPCRmeans, select = -c(Treatment))
 rownames(QPCRmeans2) <- QPCRmeans[,1]
 
 # # Getting the standard curve data
-std1x = 150
-std2x = 15
-std3x = 1.5
-std4x = .15
+std1x = 500
+std2x = 250
+std3x = 125
+std4x = 62.5
 std1y = QPCRmeans2["std1","mean"]
 std2y = QPCRmeans2["std2","mean"]
 std3y = QPCRmeans2["std3","mean"]
@@ -91,12 +93,45 @@ for (i in 1:length(samples)){
   PredDNA[samples[i],"ng.of.DNA"] <- DNAng
 }
 PredDNA$Cp <- QPCRmeans2$mean
+water_remover <- c("Water", ignore_case = TRUE)
+PredDNA <- PredDNA[!(row.names(PredDNA) %in% water_remover),]
 
+# # creating log of starting DNA to calculate efficiency 
+matrixologs = matrix(nrow = 4, ncol = 1)
+for (i in 1:nrow(stdData)){
+  matrixologs[i,1] <- log10(stdData[i,1])
+  
+}
+stdData <- cbind(stdData, matrixologs[,1])
 
+# # finding the log sum of X*Y
+Lxy = matrix(nrow = 4, ncol = 1)
+i=1
+for(i in 1:nrow(stdData)){
+  Lxy[i,1] = stdData[i,3] * stdData[i,2]
+}
+LXY <- sum(Lxy)
+# # finding the Log sum of X
+LX <- sum(stdData[,3])
+# # finding the sum of Y
+LY <- sum(stdData[,2])
+# # finding X^2
+Lx2 = matrix(nrow = 4, ncol = 1)
+for(i in 1:nrow(stdData)){
+  Lx2[i,1] = stdData[i,3]^2
+}
+LX2 <- sum(Lx2)
 
+# # finding m and b
+n = nrow(stdData)
+Lm = ((n * LXY) - (LX * LY)) / ((n * LX2) - LX^2)
+Lb = (LY-(Lm*LX))/n
+efficiency <- as.data.frame(stdData)
+E <- (-1+10^(-1/Lm))*100
 ################################## Making Graphs ###############################
 
 #Making plot based on sample names
+true_data$Pos <- factor(true_data$Pos, levels = true_data$Pos) # # makes the pos column the order on x axis
 ggplot(data = true_data, 
   aes(
   x = Pos,
@@ -110,6 +145,7 @@ ggplot(data = true_data,
 ggsave(file="Treatments.png")
 
 #Making plot based on endophyte status
+true_data$Pos <- factor(true_data$Pos, levels = true_data$Pos)
 ggplot(data = true_data, 
        aes(
          x = Pos,
@@ -118,22 +154,42 @@ ggplot(data = true_data,
          shape = Primer_Set
        )) +
   geom_point(size = 5) +
-  theme(legend.position = "right") +
-  theme_bw()
+  theme(legend.position = "right", axis.text.x = element_text(size=8), 
+        plot.background = element_rect(fill = "white"),
+        panel.background = element_rect(fill = "white", colour="blue"),
+        panel.grid.major = element_line(colour = "ivory2", linetype = "solid"),
+        panel.grid.minor = element_line(colour = "ivory2"))
 ggsave(file="Endophyte_status.png")
-
+  
 
 # # Graph of line of best fit
+PredDNA$gen_color <- rep('black',nrow(PredDNA))
+PredDNA$gen_color[row.names(PredDNA) == 'std1'] <- 'green'
+PredDNA$gen_color[row.names(PredDNA) == 'std2'] <- 'green'
+PredDNA$gen_color[row.names(PredDNA) == 'std3'] <- 'green'
+PredDNA$gen_color[row.names(PredDNA) == 'std4'] <- 'green'
+
 ggplot(data = PredDNA, 
        aes(
          x = ng.of.DNA,
          y = Cp,
-       )) +
-  geom_point(size = 5) +
+        )) +
+  geom_point(aes(size = 5, color=gen_color)) +
+  scale_color_identity(guide = "legend", labels = c("Samples","Standard")) +
+  labs(color= "gen_color") +
   theme(legend.position = "right") +
-  geom_text(x=50, y=27.5,label=(paste0("slope = ",m))) +
+  geom_text(x=100, y=25.5,label=(paste0("slope = ",round(m, digits = 6)))) +
   theme_bw()
 
-
+# # graph of Cp and log DNA amount
+ggplot(data = efficiency, 
+       aes(
+         x = V3,
+         y = V2,
+       )) +
+  geom_point(aes(size = 5)) +
+  geom_text(x=2.5, y=30,label=(paste0("slope = ",round(Lm, digits = 6)))) +
+  geom_text(x=2.5, y=29.5,label=(paste0("effieciency = ",round(E, digits = 4)))) +
+  theme_bw()
 
 
