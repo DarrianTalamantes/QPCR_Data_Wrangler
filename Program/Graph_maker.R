@@ -6,26 +6,29 @@ library(Rfast)
 library(car)
 library(ggplot2)
 library(plyr)
+library(data.table)
 
 # # Argument inputs
 Args <- commandArgs(trailingOnly=TRUE)
 # #input variables will need to be a number for the seed and all input files. 
 data_table_tabs <- read.table (Args[1], sep = "\t", header = TRUE)
 data_table_comma <- read.table(Args[1], sep = ",", header = TRUE)
+Length <- strtoi(Args[2])
 
-# # Delete me when done
-data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
+# # # Testing variables # # # # 
+# Length <- 118
+# data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
+# # # # #
 
 # # Checking amount of columns in files
-# # data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
 columns_comma <- ncol(data_table_comma)
 columns_tabs <- ncol(data_table_tabs)
 
 # # Checking if columns are tabs or comma seperated
-if (columns_comma == 5){
+if (columns_comma == 6){
   true_data <- data_table_comma
   print("Your file is comma seperated")
-} else if (columns_tabs == 5){
+} else if (columns_tabs == 6){
   true_data <- columns_tabs
   print("Your file is tab seperated")
 } else {
@@ -33,101 +36,101 @@ if (columns_comma == 5){
 }
 
 
+# # Splitting data  into samples and standard curve data
 
-# # calculating average of samples
-QPCRmeans = ddply(data_table_comma, .(Treatment), summarize, 
-      mean = mean(Cp))
-QPCRmeans2 <- subset(QPCRmeans, select = -c(Treatment))
-rownames(QPCRmeans2) <- QPCRmeans[,1]
+std_data <- true_data[true_data$Treatment %like% "std", ]
+water_data <- true_data[true_data$Treatment == regex('water', ignore_case = TRUE), ]
+std_data <- rbind(std_data,water_data)
 
-# # Getting the standard curve data
-std1x = 500
-std2x = 250
-std3x = 125
-std4x = 62.5
-std1y = QPCRmeans2["std1","mean"]
-std2y = QPCRmeans2["std2","mean"]
-std3y = QPCRmeans2["std3","mean"]
-std4y = QPCRmeans2["std4","mean"]
+sample_data <- true_data[!grepl("std", true_data$Treatment),]
+sample_data <- sample_data[sample_data$Treatment != regex('water', ignore_case = TRUE),]
 
-# # Creating a standard curve matrix
-stdData = matrix(nrow = 4, ncol = 2)
-stdData[1,1]=std1x
-stdData[2,1]=std2x
-stdData[3,1]=std3x
-stdData[4,1]=std4x
-stdData[1,2]=std1y
-stdData[2,2]=std2y
-stdData[3,2]=std3y
-stdData[4,2]=std4y
+# # calculating average of samples and standards
+Sample_means = ddply(sample_data, .(Treatment), summarize, 
+      meanCP = mean(Cp))
+Std_means = ddply(std_data, .(Treatment), summarize, 
+                     meanCP = mean(Cp), ngDNA = mean(Concentration)*5) 
+Std_means$CopyNumber <- (Std_means$ngDNA * 6.02214076*10^23)/ (Length *650 * 10^9)
 
-# # finding the sum of X*Y
-xy = matrix(nrow = 4, ncol = 1)
-i=1
-for(i in 1:nrow(stdData)){
-  xy[i,1] = stdData[i,1] * stdData[i,2]
+################ Making functions for finding line components ##################
+Find_XY <- function(data_col) {
+  Std_means$xy <- Std_means$meanCP*data_col
+  XY <- sum(Std_means$xy)
+  return(XY)
 }
-XY <- sum(xy)
-# # finding the sum of X
-X <- sum(stdData[,1])
-# # finding the sum of Y
-Y <- sum(stdData[,2])
-# # finding X^2
-x2 = matrix(nrow = 4, ncol = 1)
-for(i in 1:nrow(stdData)){
-  x2[i,1] = stdData[i,1]^2
-}
-X2 <- sum(x2)
 
-# # finding m and b
-n = nrow(stdData)
-m = ((n * XY) - (X * Y)) / ((n * X2) - X^2)
-b = (Y-(m*X))/n
+Find_X2 <- function(data_col){
+  Std_means$x2 <- data_col^2
+  X2 <- sum(Std_means$x2)
+  return(X2)
+}
+
+Find_X <- function(data_col){
+  X <- sum(data_col)
+  return(X)
+}
+
+Find_Y <- function(data_col){
+  Y <- sum(data_col)
+  return(Y)
+}
+
+
+# # Finding standard curve for ng of DNA
+ng_XY <- Find_XY(Std_means$ngDNA)
+ng_X2 <- Find_X2(Std_means$ngDNA)
+ng_X <- Find_X(Std_means$ngDNA)
+ng_Y <- Find_Y(Std_means$ngDNA)
+ng_n = nrow(Std_means)
+ng_m = ((ng_n * ng_XY) - (ng_X * ng_Y)) / ((ng_n * ng_X2) - ng_X^2)
+ng_b = (ng_Y-(ng_m*ng_X))/ng_n
 
 # # using line of best fit equation to get ng of DNA
-PredDNA <- QPCRmeans2 
-names(PredDNA)[names(PredDNA) == 'mean'] <- 'ng.of.DNA'
-samples <- rownames(PredDNA)
-for (i in 1:length(samples)){
-  DNAng <- (QPCRmeans2[samples[i],"mean"]-b)/m
-  PredDNA[samples[i],"ng.of.DNA"] <- DNAng
-}
-PredDNA$Cp <- QPCRmeans2$mean
-water_remover <- c("Water", ignore_case = TRUE)
-PredDNA <- PredDNA[!(row.names(PredDNA) %in% water_remover),]
+Sample_means$ngDNA <- round(((Sample_means$meanCP)-ng_b)/ng_m, digits = 5)
+ng_r <- round(cor(Std_means$ngDNA,Std_means$meanCP), digits = 4)
+print(paste0("r squared value for ng of DNA is  ", ng_r^2))
 
-# # creating log of starting DNA to calculate efficiency 
-matrixologs = matrix(nrow = 4, ncol = 1)
-for (i in 1:nrow(stdData)){
-  matrixologs[i,1] <- log10(stdData[i,1])
+# # Finding standard curve for Copy Number
+CN_XY <- Find_XY(Std_means$CopyNumber)
+CN_X2 <- Find_X2(Std_means$CopyNumber)
+CN_X <- Find_X(Std_means$CopyNumber)
+CN_Y <- Find_Y(Std_means$meanCP)
+CN_n = nrow(Std_means)
+CN_m = ((CN_n * CN_XY) - (CN_X * CN_Y)) / ((CN_n * CN_X2) - CN_X^2)
+CN_b = (CN_Y-(CN_m*CN_X))/CN_n
+
+# # using line of best fit equation to get copy number 
+Sample_means$CopyNumber <- round(((Sample_means$meanCP)-CN_b)/CN_m, digits = 0)
+CN_r <- round(cor(Std_means$CopyNumber,Std_means$meanCP), digits = 4)
+print(paste0("r squared value for Copy Number is ", CN_r^2))
+
+####### creating log of starting DNA to calculate efficiency ###################
+std_means_only <- Std_means[Std_means$Treatment %like% "std", ]
+std_means_only$ngDNAlog <- log10(std_means_only$ngDNA)
   
-}
-stdData <- cbind(stdData, matrixologs[,1])
+# # finding the sum of X*Y
+std_means_only$Lxy <- std_means_only$meanCP*std_means_only$ngDNAlog
+LXY <- sum(std_means_only$Lxy)
 
-# # finding the log sum of X*Y
-Lxy = matrix(nrow = 4, ncol = 1)
-i=1
-for(i in 1:nrow(stdData)){
-  Lxy[i,1] = stdData[i,3] * stdData[i,2]
-}
-LXY <- sum(Lxy)
-# # finding the Log sum of X
-LX <- sum(stdData[,3])
-# # finding the sum of Y
-LY <- sum(stdData[,2])
 # # finding X^2
-Lx2 = matrix(nrow = 4, ncol = 1)
-for(i in 1:nrow(stdData)){
-  Lx2[i,1] = stdData[i,3]^2
-}
-LX2 <- sum(Lx2)
+std_means_only$Lx2 <- std_means_only$ngDNAlog^2
+LX2 <- sum(std_means_only$Lx2)
+
+# # finding the sum of X
+LX <- sum(std_means_only$ngDNAlog)
+
+# # finding the sum of Y
+LY <- sum(std_means_only$meanCP)
 
 # # finding m and b
-n = nrow(stdData)
-Lm = ((n * LXY) - (LX * LY)) / ((n * LX2) - LX^2)
-Lb = (LY-(Lm*LX))/n
-efficiency <- as.data.frame(stdData)
+Ln = nrow(std_means_only)
+Lm = ((Ln * LXY) - (LX * LY)) / ((Ln * LX2) - LX^2)
+Lb = (LY-(Lm*LX))/Ln
+efficiency <- as.data.frame(std_means_only)
 E <- (-1+10^(-1/Lm))*100
+print(paste0("efficiency is ", E))
+print(paste0("Targets for r squared is >98 and for efficiency is 90-110"))
+write.csv(Sample_means,"Sample_Data.csv", row.names = TRUE)
 ################################## Making Graphs ###############################
 
 #Making plot based on sample names
@@ -137,59 +140,17 @@ ggplot(data = true_data,
   x = Pos,
   y = Cp,
   color = Treatment,
-  shape = Primer_Set
   )) +
   geom_point(size = 5) +
   theme(legend.position = "right") +
   theme_bw()
-ggsave(file="Treatments.png")
-
-#Making plot based on endophyte status
-true_data$Pos <- factor(true_data$Pos, levels = true_data$Pos)
-ggplot(data = true_data, 
-       aes(
-         x = Pos,
-         y = Cp,
-         color = EndoPos_Neg_Water,
-         shape = Primer_Set
-       )) +
-  geom_point(size = 5) +
-  theme(legend.position = "right", axis.text.x = element_text(size=8), 
-        plot.background = element_rect(fill = "white"),
-        panel.background = element_rect(fill = "white", colour="blue"),
-        panel.grid.major = element_line(colour = "ivory2", linetype = "solid"),
-        panel.grid.minor = element_line(colour = "ivory2"))
-ggsave(file="Endophyte_status.png")
-  
 
 # # Graph of line of best fit
-PredDNA$gen_color <- rep('black',nrow(PredDNA))
-PredDNA$gen_color[row.names(PredDNA) == 'std1'] <- 'green'
-PredDNA$gen_color[row.names(PredDNA) == 'std2'] <- 'green'
-PredDNA$gen_color[row.names(PredDNA) == 'std3'] <- 'green'
-PredDNA$gen_color[row.names(PredDNA) == 'std4'] <- 'green'
+ggplot() +
+  geom_point(data = Std_means, aes(x = Std_means$CopyNumber, y = Std_means$meanCP), color='black', size = 5) +
+  geom_point(data = Sample_means, aes(x = Sample_means$CopyNumber, y = Sample_means$meanCP), color='Green') +
+  annotate(geom="text",x=150000000, y=30, label= paste0("r squared value of standards for copy number is ", CN_r^2))
+ggsave(file="Standard_Curve.png")
 
-ggplot(data = PredDNA, 
-       aes(
-         x = ng.of.DNA,
-         y = Cp,
-        )) +
-  geom_point(aes(size = 5, color=gen_color)) +
-  scale_color_identity(guide = "legend", labels = c("Samples","Standard")) +
-  labs(color= "gen_color") +
-  theme(legend.position = "right") +
-  geom_text(x=100, y=25.5,label=(paste0("slope = ",round(m, digits = 6)))) +
-  theme_bw()
-
-# # graph of Cp and log DNA amount
-ggplot(data = efficiency, 
-       aes(
-         x = V3,
-         y = V2,
-       )) +
-  geom_point(aes(size = 5)) +
-  geom_text(x=2.5, y=30,label=(paste0("slope = ",round(Lm, digits = 6)))) +
-  geom_text(x=2.5, y=29.5,label=(paste0("effieciency = ",round(E, digits = 4)))) +
-  theme_bw()
 
 

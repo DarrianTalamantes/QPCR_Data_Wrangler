@@ -1,3 +1,4 @@
 # ignoring files in data directories
 Program/int_files/
 Program/output/
+Program/List_Multiplyer/venv
