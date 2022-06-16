@@ -88,7 +88,7 @@ ng_b = (ng_Y-(ng_m*ng_X))/ng_n
 # # using line of best fit equation to get ng of DNA
 Sample_means$ngDNA <- round(((Sample_means$meanCP)-ng_b)/ng_m, digits = 5)
 ng_r <- round(cor(Std_means$ngDNA,Std_means$meanCP), digits = 4)
-print(paste0("r squared value for ng of DNA is  ", ng_r^2))
+# print(paste0("r squared value for ng of DNA is  ", ng_r^2))
 
 # # Finding standard curve for Copy Number
 CN_XY <- Find_XY(Std_means$CopyNumber)
@@ -102,22 +102,21 @@ CN_b = (CN_Y-(CN_m*CN_X))/CN_n
 # # using line of best fit equation to get copy number 
 Sample_means$CopyNumber <- round(((Sample_means$meanCP)-CN_b)/CN_m, digits = 0)
 CN_r <- round(cor(Std_means$CopyNumber,Std_means$meanCP), digits = 4)
-print(paste0("r squared value for Copy Number is ", CN_r^2))
+# print(paste0("r squared value for Copy Number is ", CN_r^2))
 
-####### creating log of starting DNA to calculate efficiency ###################
+######################### creating log of starting DNA to calculate efficiency #######################################
 std_means_only <- Std_means[Std_means$Treatment %like% "std", ]
-std_means_only$ngDNAlog <- log10(std_means_only$ngDNA)
-  
+std_means_only$LogCopyNumber <- log10(std_means_only$CopyNumber)
 # # finding the sum of X*Y
-std_means_only$Lxy <- std_means_only$meanCP*std_means_only$ngDNAlog
+std_means_only$Lxy <- std_means_only$meanCP*std_means_only$LogCopyNumber
 LXY <- sum(std_means_only$Lxy)
 
 # # finding X^2
-std_means_only$Lx2 <- std_means_only$ngDNAlog^2
+std_means_only$Lx2 <- std_means_only$LogCopyNumber^2
 LX2 <- sum(std_means_only$Lx2)
 
 # # finding the sum of X
-LX <- sum(std_means_only$ngDNAlog)
+LX <- sum(std_means_only$LogCopyNumber)
 
 # # finding the sum of Y
 LY <- sum(std_means_only$meanCP)
@@ -128,7 +127,10 @@ Lm = ((Ln * LXY) - (LX * LY)) / ((Ln * LX2) - LX^2)
 Lb = (LY-(Lm*LX))/Ln
 efficiency <- as.data.frame(std_means_only)
 E <- (-1+10^(-1/Lm))*100
+LCN_r <- round(cor(std_means_only$LogCopyNumber,std_means_only$meanCP), digits = 4)
+Sample_means$LogCopyNumber <- round(((Sample_means$meanCP)-Lb)/Lm, digits = 5)
 print(paste0("efficiency is ", E))
+print(paste0("r squared value for log(Copy Number) is  ", LCN_r^2))
 print(paste0("Targets for r squared is >98 and for efficiency is 90-110"))
 write.csv(Sample_means,"Sample_Data.csv", row.names = TRUE)
 ################################## Making Graphs ###############################
@@ -150,7 +152,11 @@ ggplot() +
   geom_point(data = Std_means, aes(x = Std_means$CopyNumber, y = Std_means$meanCP), color='black', size = 5) +
   geom_point(data = Sample_means, aes(x = Sample_means$CopyNumber, y = Sample_means$meanCP), color='Green') +
   annotate(geom="text",x=150000000, y=30, label= paste0("r squared value of standards for copy number is ", CN_r^2))
+
+
+# # Graph for log of stuff
+ggplot() +
+  geom_point(data = std_means_only, aes(x = std_means_only$LogCopyNumber, y = std_means_only$meanCP), color='black', size = 5) +
+  geom_point(data = Sample_means, aes(x = Sample_means$LogCopyNumber, y = Sample_means$meanCP), color='Green') +
+  annotate(geom="text",x=4, y=30, label= paste0("r squared value of standards for copy number is ", CN_r^2))
 ggsave(file="Standard_Curve.png")
-
-
-
