@@ -158,5 +158,5 @@ ggplot() +
 ggplot() +
   geom_point(data = std_means_only, aes(x = std_means_only$LogCopyNumber, y = std_means_only$meanCP), color='black', size = 5) +
   geom_point(data = Sample_means, aes(x = Sample_means$LogCopyNumber, y = Sample_means$meanCP), color='Green') +
-  annotate(geom="text",x=4, y=30, label= paste0("r squared value of standards for copy number is ", CN_r^2))
+  annotate(geom="text",x=4, y=30, label= paste0("r squared value of standards for copy number is ", LCN_r^2))
 ggsave(file="Standard_Curve.png")
