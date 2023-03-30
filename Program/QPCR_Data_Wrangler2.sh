@@ -7,6 +7,7 @@ Rscript --vanilla Graph_maker.R $Home/int_files/edit_me.txt $amp
 
 #./Graph_maker.R $Home/int_files/edit_me.txt $amp
 mv *.png output/
+mv Sample_Data.csv output/
 rm *.pdf
 
 

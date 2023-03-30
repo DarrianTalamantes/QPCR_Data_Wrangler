@@ -3,6 +3,7 @@ library(reshape2)
 library(tidyverse)
 library(vegan)
 library(Rfast)
+library(RcppGSL)
 library(car)
 library(ggplot2)
 library(plyr)
@@ -16,8 +17,8 @@ data_table_comma <- read.table(Args[1], sep = ",", header = TRUE)
 Length <- strtoi(Args[2])
 
 # # # Testing variables # # # # 
-# Length <- 118
-# data_table_comma <- read.table("/home/drt83172/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
+Length <- 118
+data_table_comma <- read.table("/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
 # # # # #
 
 # # Checking amount of columns in files
@@ -38,6 +39,7 @@ if (columns_comma == 6){
 
 # # Splitting data  into samples and standard curve data
 
+true_data <- subset(true_data, Cp != 0) 
 std_data <- true_data[true_data$Treatment %like% "std", ]
 water_data <- true_data[true_data$Treatment == regex('water', ignore_case = TRUE), ]
 std_data <- rbind(std_data,water_data)
@@ -45,9 +47,7 @@ std_data <- rbind(std_data,water_data)
 sample_data <- true_data[!grepl("std", true_data$Treatment),]
 sample_data <- sample_data[sample_data$Treatment != regex('water', ignore_case = TRUE),]
 
-# # calculating average of samples and standards
-Sample_means = ddply(sample_data, .(Treatment), summarize, 
-      meanCP = mean(Cp))
+# # calculating average CP of standards 
 Std_means = ddply(std_data, .(Treatment), summarize, 
                      meanCP = mean(Cp), ngDNA = mean(Concentration)*5) 
 Std_means$CopyNumber <- (Std_means$ngDNA * 6.02214076*10^23)/ (Length *650 * 10^9)
@@ -76,7 +76,7 @@ Find_Y <- function(data_col){
 }
 
 
-# # Finding standard curve for ng of DNA
+# # Finding standard curve for ng of DNA (ng stands for nano grams)
 ng_XY <- Find_XY(Std_means$ngDNA)
 ng_X2 <- Find_X2(Std_means$ngDNA)
 ng_X <- Find_X(Std_means$ngDNA)
@@ -85,12 +85,10 @@ ng_n = nrow(Std_means)
 ng_m = ((ng_n * ng_XY) - (ng_X * ng_Y)) / ((ng_n * ng_X2) - ng_X^2)
 ng_b = (ng_Y-(ng_m*ng_X))/ng_n
 
-# # using line of best fit equation to get ng of DNA
-Sample_means$ngDNA <- round(((Sample_means$meanCP)-ng_b)/ng_m, digits = 5)
 ng_r <- round(cor(Std_means$ngDNA,Std_means$meanCP), digits = 4)
 # print(paste0("r squared value for ng of DNA is  ", ng_r^2))
 
-# # Finding standard curve for Copy Number
+# # Finding standard curve for Copy Number (CN is for copy number)
 CN_XY <- Find_XY(Std_means$CopyNumber)
 CN_X2 <- Find_X2(Std_means$CopyNumber)
 CN_X <- Find_X(Std_means$CopyNumber)
@@ -98,11 +96,9 @@ CN_Y <- Find_Y(Std_means$meanCP)
 CN_n = nrow(Std_means)
 CN_m = ((CN_n * CN_XY) - (CN_X * CN_Y)) / ((CN_n * CN_X2) - CN_X^2)
 CN_b = (CN_Y-(CN_m*CN_X))/CN_n
-
-# # using line of best fit equation to get copy number 
-Sample_means$CopyNumber <- round(((Sample_means$meanCP)-CN_b)/CN_m, digits = 0)
 CN_r <- round(cor(Std_means$CopyNumber,Std_means$meanCP), digits = 4)
-# print(paste0("r squared value for Copy Number is ", CN_r^2))
+# print(paste0("r squared value for ng of DNA is  ", CN_r^2))
+
 
 ######################### creating log of starting DNA to calculate efficiency #######################################
 std_means_only <- Std_means[Std_means$Treatment %like% "std", ]
@@ -128,6 +124,19 @@ Lb = (LY-(Lm*LX))/Ln
 efficiency <- as.data.frame(std_means_only)
 E <- (-1+10^(-1/Lm))*100
 LCN_r <- round(cor(std_means_only$LogCopyNumber,std_means_only$meanCP), digits = 4)
+
+################## Working with sample data #####################################
+# Finding sample means
+Sample_means = ddply(sample_data, .(Treatment), summarize, 
+                     meanCP = mean(Cp))
+
+# # using line of best fit equation to get ng of DNA
+Sample_means$ngDNA <- round(((Sample_means$meanCP)-ng_b)/ng_m, digits = 5)
+
+# # using line of best fit equation to get copy number 
+Sample_means$CopyNumber <- round(((Sample_means$meanCP)-CN_b)/CN_m, digits = 0)
+
+
 Sample_means$LogCopyNumber <- round(((Sample_means$meanCP)-Lb)/Lm, digits = 5)
 print(paste0("efficiency is ", E))
 print(paste0("r squared value for log(Copy Number) is  ", LCN_r^2))
@@ -136,27 +145,22 @@ write.csv(Sample_means,"Sample_Data.csv", row.names = TRUE)
 ################################## Making Graphs ###############################
 
 #Making plot based on sample names
-true_data$Pos <- factor(true_data$Pos, levels = true_data$Pos) # # makes the pos column the order on x axis
-ggplot(data = true_data, 
-  aes(
-  x = Pos,
-  y = Cp,
-  color = Treatment,
-  )) +
-  geom_point(size = 5) +
-  theme(legend.position = "right") +
-  theme_bw()
-
-# # Graph of line of best fit
-ggplot() +
-  geom_point(data = Std_means, aes(x = Std_means$CopyNumber, y = Std_means$meanCP), color='black', size = 5) +
-  geom_point(data = Sample_means, aes(x = Sample_means$CopyNumber, y = Sample_means$meanCP), color='Green') +
-  annotate(geom="text",x=150000000, y=30, label= paste0("r squared value of standards for copy number is ", CN_r^2))
-
+# true_data$Pos <- factor(true_data$Pos, levels = true_data$Pos) # # makes the pos column the order on x axis
+# ggplot(data = true_data, 
+#   aes(
+#   x = Pos,
+#   y = Cp,
+#   color = Treatment,
+#   )) +
+#   geom_point(size = 5) +
+#   theme(legend.position = "right") +
+#   theme_bw()
 
 # # Graph for log of stuff
 ggplot() +
   geom_point(data = std_means_only, aes(x = std_means_only$LogCopyNumber, y = std_means_only$meanCP), color='black', size = 5) +
   geom_point(data = Sample_means, aes(x = Sample_means$LogCopyNumber, y = Sample_means$meanCP), color='Green') +
-  annotate(geom="text",x=4, y=30, label= paste0("r squared value of standards for copy number is ", LCN_r^2))
+  annotate(geom="text",x=6, y=30, label= paste0("r squared value ", LCN_r^2)) +
+  annotate(geom="text",x=6, y=25, label= paste0("Efficiency ", E))
+
 ggsave(file="Standard_Curve.png")
