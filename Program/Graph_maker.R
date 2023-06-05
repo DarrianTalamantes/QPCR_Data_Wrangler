@@ -17,9 +17,9 @@ data_table_comma <- read.table(Args[1], sep = ",", header = TRUE)
 Length <- strtoi(Args[2])
 
 # # # Testing variables # # # # 
-Length <- 118
-data_table_comma <- read.table("/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = ",", header = TRUE)
-# # # # #
+# Length <- 230
+# data_table_comma <- read.table("/home/drt/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Program/int_files/edit_me.txt", sep = "\t", header = TRUE)
+# # # # # #
 
 # # Checking amount of columns in files
 columns_comma <- ncol(data_table_comma)
@@ -30,7 +30,7 @@ if (columns_comma == 6){
   true_data <- data_table_comma
   print("Your file is comma seperated")
 } else if (columns_tabs == 6){
-  true_data <- columns_tabs
+  true_data <- data_table_tabs
   print("Your file is tab seperated")
 } else {
   print("Something is wrong with the file. Are you sure there is 5 columns seperated by tabs or commas")
@@ -38,7 +38,6 @@ if (columns_comma == 6){
 
 
 # # Splitting data  into samples and standard curve data
-
 true_data <- subset(true_data, Cp != 0) 
 std_data <- true_data[true_data$Treatment %like% "std", ]
 water_data <- true_data[true_data$Treatment == regex('water', ignore_case = TRUE), ]
