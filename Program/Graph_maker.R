@@ -38,9 +38,15 @@ if (columns_comma == 6){
 
 
 # # Splitting data  into samples and standard curve data
+water_data <- true_data[true_data$Treatment == regex('water', ignore_case = TRUE), ]
+for (x in 1:nrow(water_data)){
+ if (water_data[x,2] == 0)
+   {
+   water_data[x,2] <- 40}
+}
+
 true_data <- subset(true_data, Cp != 0) 
 std_data <- true_data[true_data$Treatment %like% "std", ]
-water_data <- true_data[true_data$Treatment == regex('water', ignore_case = TRUE), ]
 std_data <- rbind(std_data,water_data)
 
 sample_data <- true_data[!grepl("std", true_data$Treatment),]
@@ -135,6 +141,15 @@ Sample_means$ngDNA <- round(((Sample_means$meanCP)-ng_b)/ng_m, digits = 5)
 # # using line of best fit equation to get copy number 
 Sample_means$CopyNumber <- round(((Sample_means$meanCP)-CN_b)/CN_m, digits = 0)
 
+########################### Working with Water Data ###########################
+# Finding water means
+water_means = ddply(water_data, .(Treatment), summarize,
+                    meanCP = mean(Cp))
+# # using line of best fit equation to get ng of DNA
+water_means$ngDNA <- round(((water_means$meanCP)-ng_b)/ng_m, digits = 5)
+# # using line of best fit equation to get copy number
+water_means$CopyNumber <- round(((water_means$meanCP)-CN_b)/CN_m, digits = 0)
+water_means$LogCopyNumber <- round(((water_means$meanCP)-Lb)/Lm, digits = 5)
 
 Sample_means$LogCopyNumber <- round(((Sample_means$meanCP)-Lb)/Lm, digits = 5)
 print(paste0("efficiency is ", E))
@@ -157,8 +172,9 @@ write.csv(Sample_means,"Sample_Data.csv", row.names = TRUE)
 
 # # Graph for log of stuff
 ggplot() +
-  geom_point(data = std_means_only, aes(x = std_means_only$LogCopyNumber, y = std_means_only$meanCP), color='black', size = 5) +
-  geom_point(data = Sample_means, aes(x = Sample_means$LogCopyNumber, y = Sample_means$meanCP), color='Green') +
+  geom_point(data = water_means, aes(x = LogCopyNumber, y = meanCP), color='Blue', size = 3, alpha = .5) +
+  geom_point(data = std_means_only, aes(x = LogCopyNumber, y = meanCP), color='black', size = 5) +
+  geom_point(data = Sample_means, aes(x = LogCopyNumber, y = meanCP), color='Green') +
   annotate(geom="text",x=6, y=30, label= paste0("r squared value ", LCN_r^2)) +
   annotate(geom="text",x=6, y=25, label= paste0("Efficiency ", E))
 
