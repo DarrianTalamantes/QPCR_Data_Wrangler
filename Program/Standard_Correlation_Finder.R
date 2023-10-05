@@ -7,17 +7,26 @@ library(mbQTL)
 library(ggpubr)
 
 #Importing data sets
+# This first set of data is all the data corresponding to the first set of standards
 all_2x2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/all_2x2_Red_Blue.csv"
 all_g3p4_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/all_g3p4_correspond_to_Red_Blue_Standards.csv"
 
 all_2x2 <- read.csv(all_2x2_loc, header = TRUE)
 all_g3p4 <- read.csv(all_g3p4_loc, header = TRUE)
 
+# This set of data corresponds to the second set of standards and a few redoes. Will be added towrds end
+all_2x2_2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/1041-end-redoes_2x2.csv"
+all_g3p4_2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/1041-end-redoes_g3p4.csv"  
+
+# This set of data is for parents and cross 305x320, will be added twords end
+all_315x320_2x2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Preliminary_Project_Data/315x320_2x2.txt"
+all_315x320_g3p4_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Preliminary_Project_Data/315x320_G3P4.txt"
+
+
+
 # Commands I used to make the data set and then I added labels to the data for each set it came from 
 # cat cp_values_1-80_g3p4.csv cp_values_81-160_g3p4.csv cp_values_161-240_g3p4.csv cp_values_241-320_g3p4.csv cp_values_321-400_g3p4.csv cp_values_401-480_g3p4.csv cp_values_481-560_g3p4.csv cp_values_561-640_g3p4.csv cp_values_641-720_g3p4.csv cp_values_721-800_g3p4.csv cp_values_801-880_g3p4.csv cp_values_881-960_g3p4.csv cp_values_961-1040_g3p4.csv > all_g3p4_correspond_to_Red_Blue_Standards.csv 
 # cat cp_values_1-80_2x2.csv cp_values_81-160_2x2.csv cp_values_161-240_2x2.csv cp_values_241-320_2x2.csv cp_values_321-400_2x2.csv cp_values_401-480_2x2.csv cp_values_481-560_2x2.csv cp_values_561-640_2x2.csv cp_values_641-720_2x2.csv cp_values_721-800_2x2.csv cp_values_801-880_2x2.csv cp_values_881-960_2x2.csv cp_values_961-1040_2x2_2.csv  > all_2x2_Red_Blue.csv
-
-
 
 # Cleaning up Standard data 
 # Remove any 0's or anything with more than 4 char in Treatment column from the stds data
@@ -35,6 +44,10 @@ for (x in nrow(all_g3p4):1){
 
 all_2x2$Cp <- as.numeric(all_2x2$Cp)
 all_g3p4$Cp <- as.numeric(all_g3p4$Cp)
+
+# Count 
+all_2x2 %>% count(Treatment, sort = TRUE)
+
 
 # ddply to make the std# and the data set the parameters
 stds_g3p4 <-
@@ -78,6 +91,22 @@ stds_g3p4 <- stds_g3p4[!stds_g3p4$Data_Set == "1-80",]
 stds_2x2$LogEpichloe_Standard_CP_Values <- log(stds_2x2$Epichloe_Standard_CP_Values)
 stds_g3p4$LogTall_Fescue_Standard_CP_Values <- log(stds_g3p4$Tall_Fescue_Standard_CP_Values)
 
+# removing standards from 2x2 to make equal to g3p4 standards
+stds_2x2$combo <- paste(stds_2x2$Data_Set, stds_2x2$Treatment, sep="_")
+stds_g3p4$combo <- paste(stds_g3p4$Data_Set, stds_g3p4$Treatment, sep="_")
+stdsall <- merge(stds_2x2, stds_g3p4, by.x = "combo", by.y = "combo")
+stds_2x2 <- subset(stdsall, select = c("Data_Set.x", "Treatment.x", "Epichloe_Standard_CP_Values", "LogEpichloe_Standard_CP_Values"))
+# Fixing names 
+stds_2x2 <- 
+  stds_2x2 %>% 
+  rename(Data_Set = Data_Set.x, Treatment = Treatment.x)
+
+stds_g3p4 <- subset(stdsall, select = c("Data_Set.y", "Treatment.y", "Tall_Fescue_Standard_CP_Values", "LogTall_Fescue_Standard_CP_Values"))
+stds_g3p4 <- 
+  stds_g3p4 %>% 
+  rename(Data_Set = Data_Set.y, Treatment = Treatment.y)
+
+# Linear model, We must remove 1-80 to get this to work
 model_logged <- lm(stds_2x2$LogEpichloe_Standard_CP_Values ~ stds_g3p4$LogTall_Fescue_Standard_CP_Values)
 summary(model_logged)
 gvlma(model_logged)
@@ -107,15 +136,23 @@ EpiPredictor(2.74)
 
 
 ################# Calculating efficiency for each data set and creating adjusted CP values #####################
-Data_Sets <- unique(all_2x2$Data_Set)
 
+# Recreating all standard data for use in the rest of the script 
 Standards_2x2 <- all_2x2
 Standards_g3p4 <- all_g3p4
-all_2x2 <- read.csv(all_2x2_loc, header = TRUE)
-all_g3p4 <- read.csv(all_g3p4_loc, header = TRUE)
-
+for (x in nrow(Standards_2x2):1){
+  if (Standards_2x2[x,2]=="" | Standards_2x2[x,2]=="0" | nchar(Standards_2x2[x,3])!=4){
+    Standards_2x2 <- Standards_2x2[-x,]
+  }
+}
+for (x in nrow(Standards_g3p4):1){
+  if (Standards_g3p4[x,2]=="" | Standards_g3p4[x,2]=="0" | nchar(Standards_g3p4[x,3])!=4){
+    Standards_g3p4 <- Standards_g3p4[-x,]
+  }
+}
 Standards_2x2$Concentration <- as.numeric(Standards_2x2$Concentration)
 Standards_g3p4$Concentration <- as.numeric(Standards_g3p4$Concentration)
+
 
 # seperating the standards and getting the means of them, calculating ng of DNA
 # function takes full data set and seperates standards to find their means
@@ -210,12 +247,12 @@ for (x in nrow(Data):1){
     }
   }
   # Getting rid of extrenous 0's 2x2
-  TreatmentSplit <- as.data.frame(str_split_fixed(Data$Treatment, "-", 3))
-  TreatmentSplit$V1 <- sub("^0+", "", TreatmentSplit$V1)
-  TreatmentSplit$V2 <- sub("^0+", "", TreatmentSplit$V2)
-  TreatmentSplit$V3 <- sub("^0+", "", TreatmentSplit$V3)
-  TreatmentSplit$x <- paste0(TreatmentSplit$V1, "-", TreatmentSplit$V2, "-", TreatmentSplit$V3)
-  Data$Treatment <- TreatmentSplit$x 
+  # TreatmentSplit <- as.data.frame(str_split_fixed(Data$Treatment, "-", 3))
+  # TreatmentSplit$V1 <- sub("^0+", "", TreatmentSplit$V1)
+  # TreatmentSplit$V2 <- sub("^0+", "", TreatmentSplit$V2)
+  # TreatmentSplit$V3 <- sub("^0+", "", TreatmentSplit$V3)
+  # TreatmentSplit$x <- paste0(TreatmentSplit$V1, "-", TreatmentSplit$V2, "-", TreatmentSplit$V3)
+  # Data$Treatment <- TreatmentSplit$x 
   
   Data_Mean <-
     Data %>%
@@ -311,32 +348,69 @@ ggarrange(EpiAdjCP, EpiOgCP, ncol = 1, nrow = 2)
 ggarrange(FescueAdjCP, FescueOgCP, ncol = 1, nrow = 2)
 
 ########## Inputting the rest of the data (315, data not using red blue 2x2 standards)  ###############
+###### Introducing the rest of the data 
+###################################################################################################
 # commands used to make data sets, then added data set column
 # cat cp_values_1041-1120_2x2.csv cp_values_1121-1200_2x2.csv cp_values_1201-1280_2x2.csv cp_values_1281-END-Redoes_2x2.csv > 1041-end-redoes_2x2.csv
 # cat cp_values_1041-1121_g3p4.csv cp_values_1121-1200_g3p4.csv cp_values_1201-1280_g3p4.csv cp_values_1281-END-Redoes_g3p4.csv > 1041-end-redoes_g3p4.csv
+all_2x2_1 <- read.csv(all_2x2_loc, header = TRUE)
+all_g3p4_1 <- read.csv(all_g3p4_loc, header = TRUE)
+all_2x2_2 <- read.csv(all_2x2_2_loc, header = TRUE)
+all_g3p4_2 <- read.csv(all_g3p4_2_loc, header = TRUE)
+all_315x320_2x2 <- read.csv(all_315x320_2x2_loc, header = TRUE)
+all_315x320_g3p4 <- read.csv(all_315x320_g3p4_loc, header = TRUE)
 
-rest_of_g3p4_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/1041-end-redoes_g3p4.csv"
-only_315x320_g3p4_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/315x320_G3P4.csv"
-rest_of_2x2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/1041-end-redoes_2x2.csv"
-only_315x320_2x2_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/315x320_2x2.csv"
+all_2x2_1$Standard <- "First_combo"
+all_2x2_2$Standard <- "Second_combo"
+all_g3p4_1$Standard <- "First_combo"
+all_g3p4_2$Standard <- "Second_combo"
+all_315x320_2x2$Standard <- "Pre_combo"
+all_315x320_g3p4$Standard <- "Pre_combo"
 
-rest_of_g3p4 <- read.csv(rest_of_g3p4_loc, header = TRUE)
-only_315x320_g3p4 <- read.csv(only_315x320_g3p4_loc, header = TRUE)
-rest_of_2x2 <- read.csv(rest_of_2x2_loc, header = TRUE)
-only_315x320_2x2 <- read.csv(only_315x320_2x2_loc, header = TRUE)
+all_2x2_samples <- rbind(all_2x2_1, all_2x2_2, all_315x320_2x2)
+all_g3p4_samples <- rbind(all_g3p4_1, all_g3p4_2, all_315x320_g3p4)
 
-# binding the data sets together
-rest_of_g3p4 <- rbind(rest_of_g3p4,only_315x320_g3p4)
-rest_of_2x2 <- rbind(rest_of_2x2,only_315x320_2x2)
 
+#Removing Redone samples
+redoes_loc <- "/home/drt06/Documents/QPCR_Data_Wrangler/Program/int_files/Data_for_Project/Sample_Redo_List.csv"
+redoes <- read.csv(redoes_loc, header = FALSE)
+redoner<- function(redoes,sampledata){
+  for (x in nrow(reodes):1){
+    for (y in nrow(sampledata):1){
+      if(reodes[x,] == sampledata[y,3]){
+        if(sampledata[y,7] != "1281-1325-R"){
+          sampledata <- sampledata[-y,]
+        }
+      }  
+    }
+  }
+  return(sampledata)
+}
+
+all_2x2_samples <- redoner(redoes,all_2x2_samples)
+all_g3p4_samples <- redoner(redoes,all_g3p4_samples)
+
+# Removing specific redone samples
+all_2x2_samples <- all_2x2_samples[!(all_2x2_samples$Treatment == "303-1-41" & all_2x2_samples$Data_Set == "81-160" ),]
+
+all_2x2_samples$Concentration <- as.numeric(all_2x2_samples$Concentration)
+all_g3p4_samples$Concentration <- as.numeric(all_g3p4_samples$Concentration)
+
+standard_group <- subset(all_2x2_samples, select = c("Data_Set","Standard"))
 # Filtering and adjusting cp values fo the rest of the data
 # takes out obviously bad samples, 0's, missing, ect.
-Data_g3p4_Means_rest <- Data_Filtering(rest_of_g3p4) # method filters data and leaves only samples
-Data_2x2_Means_rest <- Data_Filtering(rest_of_2x2)
+Data_g3p4_Means_all <- Data_Filtering(all_g3p4_samples) # method filters data and leaves only samples
+Data_2x2_Means_all <- Data_Filtering(all_2x2_samples)
 
-# method seperates standards from data, gets their mean and adds copy number and log copy number
-std_rest_g3p4_means <- FindStandardMeans(rest_of_g3p4,230)
-std_rest_2x2_means <- FindStandardMeans(rest_of_2x2,230)
+# Method seperates standards from data,  to get their mean and adds copy number and log copy number
+std_rest_g3p4_means <- FindStandardMeans(all_g3p4_samples,230)
+# Needed to double filter 2x2 for some reason
+for (x in nrow(all_2x2_samples):1){
+  if (all_2x2_samples[x,2]=="" | all_2x2_samples[x,2]=="0" | nchar(all_2x2_samples[x,3])!=4){
+    all_2x2_samples <- all_2x2_samples[-x,]
+  }
+}
+std_rest_2x2_means <- FindStandardMeans(all_2x2_samples,118)
 
 # method adjusts the CP value based on efficiency
 # Also filters out samples that are off the standard curve, too low, too high, ect. 
@@ -366,27 +440,20 @@ all_Data$Delta_CT <- all_Data$adjCP.Fescue - all_Data$adjCP.Epichloe
 # Delta Ratio is Fescue / Epichloe
 all_Data$Fes_to_Epi_Ratio <- all_Data$adjCP.Fescue / all_Data$adjCP.Epichloe
 
-# getting the log values then recaluculating the diffrence and ratios
-all_Data$Log_adjCP.Fescue <- log10(all_Data$adjCP.Fescue)
-all_Data$Log_adjCP.Epichloe <- log10(all_Data$adjCP.Epichloe)
-all_Data$Log_Delta_CT <- all_Data$Log_adjCP.Fescue - all_Data$Log_adjCP.Epichloe
-all_Data$Log_Fes_to_Epi_Ratio <- all_Data$Log_adjCP.Fescue / all_Data$Log_adjCP.Epichloe
-
+# Introducing Standard Combination Data
+all_Data <- merge(all_Data,standard_group, by.x = c("Data_Set"), by.y =c("Data_Set"))
 ##### Making graphs to visualize the Fescue to Epi differences ######
 
-ggplot(all_Data, aes(x=Data_Set, y=Fes_to_Epi_Ratio, color = Data_Set)) +
-  geom_point( size = 2) +
+ggplot(all_Data, aes(x=Data_Set, y=Fes_to_Epi_Ratio, color = Data_Set, shape = Standard)) +
+  geom_point( size = 4) +
   ggtitle("Ratios of Fescue / Epichloe")
 
 ggplot(all_Data, aes(x=Data_Set, y=Delta_CT, color = Data_Set)) +
-  geom_point( size = 2) +
+  geom_point( size = 4) +
   ggtitle("Fescue CT - Epichloe CT")
 
-ggplot(all_Data, aes(x=Data_Set, y=Log_Fes_to_Epi_Ratio, color = Data_Set)) +
-  geom_point( size = 2) +
-  ggtitle("Logged Ratios of Fescue / Epichloe")
-
-ggplot(all_Data, aes(x=Data_Set, y=Log_Delta_CT, color = Data_Set)) +
-  geom_point( size = 2) +
-  ggtitle("Logged Fescue CT - Epichloe CT")
-
+ggplot(all_Data, aes(x=Data_Set, y=Delta_CT, color = Standard)) +
+  geom_point( size = 4) +
+  ggtitle("Fescue CT - Epichloe CT") +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust=1),
+  panel.background = element_rect(fill = 'white', color = 'grey'))
