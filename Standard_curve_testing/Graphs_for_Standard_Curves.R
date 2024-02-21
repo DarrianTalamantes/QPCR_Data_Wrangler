@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+install.packages("tidyverse")
 library(reshape2)
 library(tidyverse)
 library(vegan)
