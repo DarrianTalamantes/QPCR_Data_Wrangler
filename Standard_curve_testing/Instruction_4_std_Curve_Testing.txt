@@ -1,16 +1,7 @@
 The Idea of this program is to take standard curves from many different primers and calculate their efficincy and r squared values
 
-Step 1: Create a text file that has the length of each amplicon on a new line. These amplicon lengths should match up with the way the plate was loaded.
+We can calculate the r2 values by plotting the logged concentration on the x axis and the ct values on the Y axis.
 
-To Do: Create an R program that reads in the above text file. It should detect the amount of columns. Extract every amplicon length.
-
-The code below is what I used to calculate the amount of copies in the standards before 
-
-Std_means = ddply(std_data, .(Treatment, Primer_Set), summarize, 
-                      meanCP = mean(Cp), ngDNA = mean(Concentration)*5) 
-Std_means$CopyNumber <- (Std_means$ngDNA * 6.02214076*10^23)/ (Length *650 * 10^9)
-
-
-Once you have the copy number and the CT values you can plot the two and calculate the linear values of both. 
-
-You can do this by using the lm() function to calculate the line. Next You can take patrs of the model in a manner similar to this model$r
+Step 1: We have to add names of samples to the data. We also need to add concentration of standards to the data.
+Step 2: Use an R program to detect the amount of different primers. Seperate these primers and create a linear model of each of them.
+Step 3: use a loop to create graphs and a table that list primer name, efficeincy, r2.
