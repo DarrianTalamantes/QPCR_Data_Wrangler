@@ -59,55 +59,55 @@ standards_summerized_epi <-
   summarise(avrage = mean(CT))
 
 #Splitting data by different Primers
-Epichloe_Data_Final_standards_p1 <- subset(Epichloe_Data_Final_standards, Primer_Set == "1x1")
-Epichloe_Data_Final_standards_p2 <- subset(Epichloe_Data_Final_standards, Primer_Set == "1x2")
-Epichloe_Data_Final_standards_p3 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x1")
-Epichloe_Data_Final_standards_p4 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x2")
+Epichloe_Data_Final_standards_1x1 <- subset(Epichloe_Data_Final_standards, Primer_Set == "1x1")
+Epichloe_Data_Final_standards_1x2 <- subset(Epichloe_Data_Final_standards, Primer_Set == "1x2")
+Epichloe_Data_Final_standards_2x1 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x1")
+Epichloe_Data_Final_standards_2x2 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x2")
 
 
-# Getting all variables needed from linear model p1
-standard_lm <- lm(Epichloe_Data_Final_standards_p1$CT ~ Epichloe_Data_Final_standards_p1$logCon)
+# Getting all variables needed from linear model 1x1
+standard_lm <- lm(Epichloe_Data_Final_standards_1x1$CT ~ Epichloe_Data_Final_standards_1x1$logCon)
 
-coefficients_p1 <- coef(standard_lm)
-y_intercept_p1 <- coefficients_p1[1]
-slope_p1 <- coefficients_p1[2]
-summary_stats_p1 <- summary(standard_lm)
-r_squared_p1 <- round(summary_stats_p1$r.squared, digits = 3)
-efficiency_p1 <- round(10^(-1/slope_p1) -1, digits = 3)
+coefficients_1x1 <- coef(standard_lm)
+y_intercept_1x1 <- coefficients_1x1[1]
+slope_1x1 <- coefficients_1x1[2]
+summary_stats_1x1 <- summary(standard_lm)
+r_squared_1x1 <- round(summary_stats_1x1$r.squared, digits = 3)
+efficiency_1x1 <- round(10^(-1/slope_1x1) -1, digits = 3)
 
-# Getting all variables needed from linear model p2
-standard_lm <- lm(Epichloe_Data_Final_standards_p2$CT ~ Epichloe_Data_Final_standards_p2$logCon)
+# Getting all variables needed from linear model 1x2
+standard_lm <- lm(Epichloe_Data_Final_standards_1x2$CT ~ Epichloe_Data_Final_standards_1x2$logCon)
 
-coefficients_p2 <- coef(standard_lm)
-y_intercept_p2 <- coefficients_p2[1]
-slope_p2 <- coefficients_p2[2]
-summary_stats_p2 <- summary(standard_lm)
-r_squared_p2 <- round(summary_stats_p2$r.squared, digits = 3)
-efficiency_p2 <- round(10^(-1/slope_p2) -1, digits = 3)
+coefficients_1x2 <- coef(standard_lm)
+y_intercept_1x2 <- coefficients_1x2[1]
+slope_1x2 <- coefficients_1x2[2]
+summary_stats_1x2 <- summary(standard_lm)
+r_squared_1x2 <- round(summary_stats_1x2$r.squared, digits = 3)
+efficiency_1x2 <- round(10^(-1/slope_1x2) -1, digits = 3)
 
-# Getting all variables needed from linear model p3
-standard_lm <- lm(Epichloe_Data_Final_standards_p3$CT ~ Epichloe_Data_Final_standards_p3$logCon)
+# Getting all variables needed from linear model 2x1
+standard_lm <- lm(Epichloe_Data_Final_standards_2x1$CT ~ Epichloe_Data_Final_standards_2x1$logCon)
 
-coefficients_p3 <- coef(standard_lm)
-y_intercept_p3 <- coefficients_p3[1]
-slope_p3 <- coefficients_p3[2]
-summary_stats_p3 <- summary(standard_lm)
-r_squared_p3 <- round(summary_stats_p3$r.squared, digits = 3)
-efficiency_p3 <- round(10^(-1/slope_p3) -1, digits = 3)
+coefficients_2x1 <- coef(standard_lm)
+y_intercept_2x1 <- coefficients_2x1[1]
+slope_2x1 <- coefficients_2x1[2]
+summary_stats_2x1 <- summary(standard_lm)
+r_squared_2x1 <- round(summary_stats_2x1$r.squared, digits = 3)
+efficiency_2x1 <- round(10^(-1/slope_2x1) -1, digits = 3)
 
-# Getting all variables needed from linear model p4
-standard_lm <- lm(Epichloe_Data_Final_standards_p4$CT ~ Epichloe_Data_Final_standards_p4$logCon)
+# Getting all variables needed from linear model 2x2
+standard_lm <- lm(Epichloe_Data_Final_standards_2x2$CT ~ Epichloe_Data_Final_standards_2x2$logCon)
 
-coefficients_p4 <- coef(standard_lm)
-y_intercept_p4 <- coefficients_p4[1]
-slope_p4 <- coefficients_p4[2]
-summary_stats_p4 <- summary(standard_lm)
-r_squared_p4 <- round(summary_stats_p4$r.squared, digits = 3)
-efficiency_p4 <- round(10^(-1/slope_p4) -1, digits = 3)
+coefficients_2x2 <- coef(standard_lm)
+y_intercept_2x2 <- coefficients_2x2[1]
+slope_2x2 <- coefficients_2x2[2]
+summary_stats_2x2 <- summary(standard_lm)
+r_squared_2x2 <- round(summary_stats_2x2$r.squared, digits = 3)
+efficiency_2x2 <- round(10^(-1/slope_2x2) -1, digits = 3)
 
 # Making a final data table 
-rs <- c(r_squared_p1,r_squared_p2,r_squared_p3,r_squared_p4)
-efficiency <- c(efficiency_p1,efficiency_p2,efficiency_p3,efficiency_p4)
+rs <- c(r_squared_1x1,r_squared_1x2,r_squared_2x1,r_squared_2x2)
+efficiency <- c(efficiency_1x1,efficiency_1x2,efficiency_2x1,efficiency_2x2)
 epichloe_table <- data.table(r_squared = rs, efficiency = efficiency)
 write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Standard_curve_testing/output/epichloe_table.csv", row.names = FALSE)
 
@@ -116,14 +116,14 @@ write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/Q
 # graph of the standards and samples
 ggplot() +
   geom_point(data = standards_summerized_epi, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p2), x = -2, y = 24),size = 4, color = "green") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p3), x = -2, y = 23),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p3), x = -2, y = 22),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p4), x = -2, y = 21),size = 4, color = "purple") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p4), x = -2, y = 20),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_1x1), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_1x1), x = -2, y = 26),size = 4, color = "red") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_1x2), x = -2, y = 25),size = 4, color = "green") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_1x2), x = -2, y = 24),size = 4, color = "green") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_2x1), x = -2, y = 23),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_2x1), x = -2, y = 22),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_2x2), x = -2, y = 21),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_2x2), x = -2, y = 20),size = 4, color = "purple") +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Epichloe Standard Curves") +
   theme_bw()
 
@@ -170,43 +170,43 @@ standards_summerized_tf <-
   summarise(avrage = mean(CT))
 
 #Splitting data by different Primers
-Tall_Fescue_Data_Final_standards_p1 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p4")
-Tall_Fescue_Data_Final_standards_p2 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p5")
-Tall_Fescue_Data_Final_standards_p3 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "tfef_alpha")
+Tall_Fescue_Data_Final_standards_g3p4 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p4")
+Tall_Fescue_Data_Final_standards_g3p5 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p5")
+Tall_Fescue_Data_Final_standards_tfef_alpha <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "tfef_alpha")
 
-# Getting all variables needed from linear model p1
-standard_lm <- lm(Tall_Fescue_Data_Final_standards_p1$CT ~ Tall_Fescue_Data_Final_standards_p1$logCon)
+# Getting all variables needed from linear model g3p4
+standard_lm <- lm(Tall_Fescue_Data_Final_standards_g3p4$CT ~ Tall_Fescue_Data_Final_standards_g3p4$logCon)
 
-coefficients_p1 <- coef(standard_lm)
-y_intercept_p1 <- coefficients_p1[1]
-slope_p1 <- coefficients_p1[2]
-summary_stats_p1 <- summary(standard_lm)
-r_squared_p1 <- round(summary_stats_p1$r.squared, digits = 3)
-efficiency_p1 <- round(10^(-1/slope_p1) -1, digits = 3)
+coefficients_g3p4 <- coef(standard_lm)
+y_intercept_g3p4 <- coefficients_g3p4[1]
+slope_g3p4 <- coefficients_g3p4[2]
+summary_stats_g3p4 <- summary(standard_lm)
+r_squared_g3p4 <- round(summary_stats_g3p4$r.squared, digits = 3)
+efficiency_g3p4 <- round(10^(-1/slope_g3p4) -1, digits = 3)
 
-# Getting all variables needed from linear model p2
-standard_lm <- lm(Tall_Fescue_Data_Final_standards_p2$CT ~ Tall_Fescue_Data_Final_standards_p2$logCon)
+# Getting all variables needed from linear model g3p5
+standard_lm <- lm(Tall_Fescue_Data_Final_standards_g3p5$CT ~ Tall_Fescue_Data_Final_standards_g3p5$logCon)
 
-coefficients_p2 <- coef(standard_lm)
-y_intercept_p2 <- coefficients_p2[1]
-slope_p2 <- coefficients_p2[2]
-summary_stats_p2 <- summary(standard_lm)
-r_squared_p2 <- round(summary_stats_p2$r.squared, digits = 3)
-efficiency_p2 <- round(10^(-1/slope_p2) -1, digits = 3)
+coefficients_g3p5 <- coef(standard_lm)
+y_intercept_g3p5 <- coefficients_g3p5[1]
+slope_g3p5 <- coefficients_g3p5[2]
+summary_stats_g3p5 <- summary(standard_lm)
+r_squared_g3p5 <- round(summary_stats_g3p5$r.squared, digits = 3)
+efficiency_g3p5 <- round(10^(-1/slope_g3p5) -1, digits = 3)
 
-# Getting all variables needed from linear model p3
-standard_lm <- lm(Tall_Fescue_Data_Final_standards_p3$CT ~ Tall_Fescue_Data_Final_standards_p3$logCon)
+# Getting all variables needed from linear model tfef_alpha
+standard_lm <- lm(Tall_Fescue_Data_Final_standards_tfef_alpha$CT ~ Tall_Fescue_Data_Final_standards_tfef_alpha$logCon)
 
-coefficients_p3 <- coef(standard_lm)
-y_intercept_p3 <- coefficients_p3[1]
-slope_p3 <- coefficients_p3[2]
-summary_stats_p3 <- summary(standard_lm)
-r_squared_p3 <- round(summary_stats_p3$r.squared, digits = 3)
-efficiency_p3 <- round(10^(-1/slope_p3) -1, digits = 3)
+coefficients_tfef_alpha <- coef(standard_lm)
+y_intercept_tfef_alpha <- coefficients_tfef_alpha[1]
+slope_tfef_alpha <- coefficients_tfef_alpha[2]
+summary_stats_tfef_alpha <- summary(standard_lm)
+r_squared_tfef_alpha <- round(summary_stats_tfef_alpha$r.squared, digits = 3)
+efficiency_tfef_alpha <- round(10^(-1/slope_tfef_alpha) -1, digits = 3)
 
 # Making a final data table 
-rs <- c(r_squared_p1,r_squared_p2,r_squared_p3)
-efficiency <- c(efficiency_p1,efficiency_p2,efficiency_p3)
+rs <- c(r_squared_g3p4,r_squared_g3p5,r_squared_tfef_alpha)
+efficiency <- c(efficiency_g3p4,efficiency_g3p5,efficiency_tfef_alpha)
 tall_fescue_table <- data.table(r_squared = rs, efficiency = efficiency)
 write.csv(tall_fescue_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Standard_curve_testing/output/tall_fescue_table.csv", row.names = FALSE)
 
@@ -215,12 +215,12 @@ write.csv(tall_fescue_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangle
 # graph of the standards and samples
 ggplot() +
   geom_point(data = standards_summerized_tf, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p2), x = -2, y = 24),size = 4, color = "green") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p3), x = -2, y = 23),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p3), x = -2, y = 22),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_g3p4), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_g3p4), x = -2, y = 26),size = 4, color = "red") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_g3p5), x = -2, y = 25),size = 4, color = "green") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_g3p5), x = -2, y = 24),size = 4, color = "green") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_tfef_alpha), x = -2, y = 23),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_tfef_alpha), x = -2, y = 22),size = 4, color = "blue") +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Tall Fescue Standard Curve Promising Primers") +
   theme_bw()
 
@@ -270,55 +270,55 @@ standards_summerized_epi_lit <-
   summarise(avrage = mean(CT))
 
 #Splitting data by different Primers
-Epichloe_Data_Problem_stds_standards_p1 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "EndoEF")
-Epichloe_Data_Problem_stds_standards_p2 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "TC35X")
-Epichloe_Data_Problem_stds_standards_p3 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "ProA")
-Epichloe_Data_Problem_stds_standards_p4 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "2x2")
+Epichloe_Data_Problem_stds_standards_EndoEF <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "EndoEF")
+Epichloe_Data_Problem_stds_standards_TC35X <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "TC35X")
+Epichloe_Data_Problem_stds_standards_ProA <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "ProA")
+Epichloe_Data_Problem_stds_standards_2x2_2 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "2x2")
 
 
-# Getting all variables needed from linear model p1
-standard_lm <- lm(Epichloe_Data_Problem_stds_standards_p1$CT ~ Epichloe_Data_Problem_stds_standards_p1$logCon)
+# Getting all variables needed from linear model EndoEF
+standard_lm <- lm(Epichloe_Data_Problem_stds_standards_EndoEF$CT ~ Epichloe_Data_Problem_stds_standards_EndoEF$logCon)
 
-coefficients_p1 <- coef(standard_lm)
-y_intercept_p1 <- coefficients_p1[1]
-slope_p1 <- coefficients_p1[2]
-summary_stats_p1 <- summary(standard_lm)
-r_squared_p1 <- round(summary_stats_p1$r.squared, digits = 3)
-efficiency_p1 <- round(10^(-1/slope_p1) -1, digits = 3)
+coefficients_EndoEF <- coef(standard_lm)
+y_intercept_EndoEF <- coefficients_EndoEF[1]
+slope_EndoEF <- coefficients_EndoEF[2]
+summary_stats_EndoEF <- summary(standard_lm)
+r_squared_EndoEF <- round(summary_stats_EndoEF$r.squared, digits = 3)
+efficiency_EndoEF <- round(10^(-1/slope_EndoEF) -1, digits = 3)
 
-# Getting all variables needed from linear model p2
-standard_lm <- lm(Epichloe_Data_Problem_stds_standards_p2$CT ~ Epichloe_Data_Problem_stds_standards_p2$logCon)
+# Getting all variables needed from linear model TC35X
+standard_lm <- lm(Epichloe_Data_Problem_stds_standards_TC35X$CT ~ Epichloe_Data_Problem_stds_standards_TC35X$logCon)
 
-coefficients_p2 <- coef(standard_lm)
-y_intercept_p2 <- coefficients_p2[1]
-slope_p2 <- coefficients_p2[2]
-summary_stats_p2 <- summary(standard_lm)
-r_squared_p2 <- round(summary_stats_p2$r.squared, digits = 3)
-efficiency_p2 <- round(10^(-1/slope_p2) -1, digits = 3)
+coefficients_TC35X <- coef(standard_lm)
+y_intercept_TC35X <- coefficients_TC35X[1]
+slope_TC35X <- coefficients_TC35X[2]
+summary_stats_TC35X <- summary(standard_lm)
+r_squared_TC35X <- round(summary_stats_TC35X$r.squared, digits = 3)
+efficiency_TC35X <- round(10^(-1/slope_TC35X) -1, digits = 3)
 
-# Getting all variables needed from linear model p3
-standard_lm <- lm(Epichloe_Data_Problem_stds_standards_p3$CT ~ Epichloe_Data_Problem_stds_standards_p3$logCon)
+# Getting all variables needed from linear model ProA
+standard_lm <- lm(Epichloe_Data_Problem_stds_standards_ProA$CT ~ Epichloe_Data_Problem_stds_standards_ProA$logCon)
 
-coefficients_p3 <- coef(standard_lm)
-y_intercept_p3 <- coefficients_p3[1]
-slope_p3 <- coefficients_p3[2]
-summary_stats_p3 <- summary(standard_lm)
-r_squared_p3 <- round(summary_stats_p3$r.squared, digits = 3)
-efficiency_p3 <- round(10^(-1/slope_p3) -1, digits = 3)
+coefficients_ProA <- coef(standard_lm)
+y_intercept_ProA <- coefficients_ProA[1]
+slope_ProA <- coefficients_ProA[2]
+summary_stats_ProA <- summary(standard_lm)
+r_squared_ProA <- round(summary_stats_ProA$r.squared, digits = 3)
+efficiency_ProA <- round(10^(-1/slope_ProA) -1, digits = 3)
 
-# Getting all variables needed from linear model p4
-standard_lm <- lm(Epichloe_Data_Problem_stds_standards_p4$CT ~ Epichloe_Data_Problem_stds_standards_p4$logCon)
+# Getting all variables needed from linear model 2x2_2
+standard_lm <- lm(Epichloe_Data_Problem_stds_standards_2x2_2$CT ~ Epichloe_Data_Problem_stds_standards_2x2_2$logCon)
 
-coefficients_p4 <- coef(standard_lm)
-y_intercept_p4 <- coefficients_p4[1]
-slope_p4 <- coefficients_p4[2]
-summary_stats_p4 <- summary(standard_lm)
-r_squared_p4 <- round(summary_stats_p4$r.squared, digits = 3)
-efficiency_p4 <- round(10^(-1/slope_p4) -1, digits = 3)
+coefficients_2x2_2 <- coef(standard_lm)
+y_intercept_2x2_2 <- coefficients_2x2_2[1]
+slope_2x2_2 <- coefficients_2x2_2[2]
+summary_stats_2x2_2 <- summary(standard_lm)
+r_squared_2x2_2 <- round(summary_stats_2x2_2$r.squared, digits = 3)
+efficiency_2x2_2 <- round(10^(-1/slope_2x2_2) -1, digits = 3)
 
 # Making a final data table 
-rs <- c(r_squared_p1,r_squared_p2,r_squared_p3,r_squared_p4)
-efficiency <- c(efficiency_p1,efficiency_p2,efficiency_p3,efficiency_p4)
+rs <- c(r_squared_EndoEF,r_squared_TC35X,r_squared_ProA,r_squared_2x2_2)
+efficiency <- c(efficiency_EndoEF,efficiency_TC35X,efficiency_ProA,efficiency_2x2_2)
 epichloe_table <- data.table(r_squared = rs, efficiency = efficiency)
 write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Standard_curve_testing/output/epichloe_lit_table.csv", row.names = FALSE)
 
@@ -327,14 +327,14 @@ write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/Q
 # graph of the standards and samples
 ggplot() +
   geom_point(data = standards_summerized_epi_lit, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p2), x = -2, y = 24),size = 4, color = "green") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p3), x = -2, y = 23),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p3), x = -2, y = 22),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p4), x = -2, y = 21),size = 4, color = "purple") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p4), x = -2, y = 20),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_EndoEF), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_EndoEF), x = -2, y = 26),size = 4, color = "red") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_TC35X), x = -2, y = 25),size = 4, color = "green") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_TC35X), x = -2, y = 24),size = 4, color = "green") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_ProA), x = -2, y = 23),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_ProA), x = -2, y = 22),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_2x2_2), x = -2, y = 21),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_2x2_2), x = -2, y = 20),size = 4, color = "purple") +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Epichloe Standard Curves Lit Primers") +
   theme_bw()
 
@@ -384,41 +384,41 @@ standards_summerized_tf_problem <-
 
 
 #Splitting data by different Primers
-Tall_Fescue_Data_Problem_stds_standards_p1 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p4")
-Tall_Fescue_Data_Problem_stds_standards_p2 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "Tf-Gap")
-Tall_Fescue_Data_Problem_stds_standards_p3 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "TF-ACS")
+Tall_Fescue_Data_Problem_stds_standards_g3p4_2 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p4")
+Tall_Fescue_Data_Problem_stds_standards_Tf_Gap <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "Tf-Gap")
+Tall_Fescue_Data_Problem_stds_standards_Tf_ACS <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "TF-ACS")
 Tall_Fescue_Data_Problem_stds_standards_p4 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p6")
 
 
-# Getting all variables needed from linear model p1
-standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_p1$CT ~ Tall_Fescue_Data_Problem_stds_standards_p1$logCon)
+# Getting all variables needed from linear model g3p4_2
+standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_g3p4_2$CT ~ Tall_Fescue_Data_Problem_stds_standards_g3p4_2$logCon)
 
-coefficients_p1 <- coef(standard_lm)
-y_intercept_p1 <- coefficients_p1[1]
-slope_p1 <- coefficients_p1[2]
-summary_stats_p1 <- summary(standard_lm)
-r_squared_p1 <- round(summary_stats_p1$r.squared, digits = 3)
-efficiency_p1 <- round(10^(-1/slope_p1) -1, digits = 3)
+coefficients_g3p4_2 <- coef(standard_lm)
+y_intercept_g3p4_2 <- coefficients_g3p4_2[1]
+slope_g3p4_2 <- coefficients_g3p4_2[2]
+summary_stats_g3p4_2 <- summary(standard_lm)
+r_squared_g3p4_2 <- round(summary_stats_g3p4_2$r.squared, digits = 3)
+efficiency_g3p4_2 <- round(10^(-1/slope_g3p4_2) -1, digits = 3)
 
-# Getting all variables needed from linear model p2
-standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_p2$CT ~ Tall_Fescue_Data_Problem_stds_standards_p2$logCon)
+# Getting all variables needed from linear model Tf_Gap
+standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_Tf_Gap$CT ~ Tall_Fescue_Data_Problem_stds_standards_Tf_Gap$logCon)
 
-coefficients_p2 <- coef(standard_lm)
-y_intercept_p2 <- coefficients_p2[1]
-slope_p2 <- coefficients_p2[2]
-summary_stats_p2 <- summary(standard_lm)
-r_squared_p2 <- round(summary_stats_p2$r.squared, digits = 3)
-efficiency_p2 <- round(10^(-1/slope_p2) -1, digits = 3)
+coefficients_Tf_Gap <- coef(standard_lm)
+y_intercept_Tf_Gap <- coefficients_Tf_Gap[1]
+slope_Tf_Gap <- coefficients_Tf_Gap[2]
+summary_stats_Tf_Gap <- summary(standard_lm)
+r_squared_Tf_Gap <- round(summary_stats_Tf_Gap$r.squared, digits = 3)
+efficiency_Tf_Gap <- round(10^(-1/slope_Tf_Gap) -1, digits = 3)
 
-# Getting all variables needed from linear model p3
-standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_p3$CT ~ Tall_Fescue_Data_Problem_stds_standards_p3$logCon)
+# Getting all variables needed from linear model Tf_ACS
+standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_Tf_ACS$CT ~ Tall_Fescue_Data_Problem_stds_standards_Tf_ACS$logCon)
 
-coefficients_p3 <- coef(standard_lm)
-y_intercept_p3 <- coefficients_p3[1]
-slope_p3 <- coefficients_p3[2]
-summary_stats_p3 <- summary(standard_lm)
-r_squared_p3 <- round(summary_stats_p3$r.squared, digits = 3)
-efficiency_p3 <- round(10^(-1/slope_p3) -1, digits = 3)
+coefficients_Tf_ACS <- coef(standard_lm)
+y_intercept_Tf_ACS <- coefficients_Tf_ACS[1]
+slope_Tf_ACS <- coefficients_Tf_ACS[2]
+summary_stats_Tf_ACS <- summary(standard_lm)
+r_squared_Tf_ACS <- round(summary_stats_Tf_ACS$r.squared, digits = 3)
+efficiency_Tf_ACS <- round(10^(-1/slope_Tf_ACS) -1, digits = 3)
 
 # Getting all variables needed from linear model p4
 standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_p4$CT ~ Tall_Fescue_Data_Problem_stds_standards_p4$logCon)
@@ -431,8 +431,8 @@ r_squared_p4 <- round(summary_stats_p4$r.squared, digits = 3)
 efficiency_p4 <- round(10^(-1/slope_p4) -1, digits = 3)
 
 # Making a final data table 
-rs <- c(r_squared_p1,r_squared_p2,r_squared_p3,r_squared_p4)
-efficiency <- c(efficiency_p1,efficiency_p2,efficiency_p3,efficiency_p4)
+rs <- c(r_squared_g3p4_2,r_squared_Tf_Gap,r_squared_Tf_ACS,r_squared_p4)
+efficiency <- c(efficiency_g3p4_2,efficiency_Tf_Gap,efficiency_Tf_ACS,efficiency_p4)
 epichloe_table <- data.table(r_squared = rs, efficiency = efficiency)
 write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Standard_curve_testing/output/Tall_Fescue_Problem_Std_table.csv", row.names = FALSE)
 
@@ -441,12 +441,12 @@ write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/Q
 # graph of the standards and samples
 ggplot() +
   geom_point(data = standards_summerized_tf_problem, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p2), x = -2, y = 24),size = 4, color = "green") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p3), x = -2, y = 23),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p3), x = -2, y = 22),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_g3p4_2), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_g3p4_2), x = -2, y = 26),size = 4, color = "red") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_Tf_Gap), x = -2, y = 25),size = 4, color = "green") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_Tf_Gap), x = -2, y = 24),size = 4, color = "green") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_Tf_ACS), x = -2, y = 23),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_Tf_ACS), x = -2, y = 22),size = 4, color = "blue") +
   geom_text(aes(label = paste0("r^2   ", r_squared_p4), x = -2, y = 21),size = 4, color = "purple") +
   geom_text(aes(label = paste0("efficiency =  ", efficiency_p4), x = -2, y = 20),size = 4, color = "purple") +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Tall Fescue Standard Curves Bad Primers") +
@@ -455,5 +455,35 @@ ggplot() +
 ###############################################################################################################
 # Making the final graphic
 ###############################################################################################################
+
+# Data sets needed
+Epichloe_Data_Final_standards_1x1
+Epichloe_Data_Final_standards_1x2
+Epichloe_Data_Final_standards_2x1
+Epichloe_Data_Final_standards_2x2
+
+Tall_Fescue_Data_Final_standards_g3p4 
+Tall_Fescue_Data_Final_standards_g3p5 
+Tall_Fescue_Data_Final_standards_tfef_alpha  
+
+Epichloe_Data_Problem_stds_standards_EndoEF 
+Epichloe_Data_Problem_stds_standards_TC35X
+Epichloe_Data_Problem_stds_standards_ProA 
+Epichloe_Data_Problem_stds_standards_2x2_2 
+
+
+
+Tall_Fescue_Data_Problem_stds_standards_g3p4_2 
+Tall_Fescue_Data_Problem_stds_standards_Tf_Gap 
+Tall_Fescue_Data_Problem_stds_standards_Tf_ACS 
+Tall_Fescue_Data_Problem_stds_standards_p4 
+
+
+
+
+
+
+
+
 
 
