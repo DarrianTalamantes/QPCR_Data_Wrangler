@@ -264,7 +264,7 @@ ggplot() +
 
 
 # summarize data 
-standards_summerized_epi <-
+standards_summerized_epi_lit <-
   Epichloe_Data_Problem_stds_standards %>%
   group_by(Treatment, Primer_Set, logCon) %>%
   summarise(avrage = mean(CT))
@@ -326,7 +326,7 @@ write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/Q
 
 # graph of the standards and samples
 ggplot() +
-  geom_point(data = standards_summerized_epi, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
+  geom_point(data = standards_summerized_epi_lit, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
   geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
   geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
   geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
@@ -377,7 +377,7 @@ ggplot() +
 
 
 # summarize data 
-standards_summerized_epi <-
+standards_summerized_tf_problem <-
   Tall_Fescue_Data_Problem_stds_standards %>%
   group_by(Treatment, Primer_Set, logCon) %>%
   summarise(avrage = mean(CT))
@@ -440,7 +440,7 @@ write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/Q
 
 # graph of the standards and samples
 ggplot() +
-  geom_point(data = standards_summerized_epi, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
+  geom_point(data = standards_summerized_tf_problem, aes(x = logCon, y = avrage, color = Primer_Set), size = 3) +
   geom_text(aes(label = paste0("r^2   ", r_squared_p1), x = -2, y = 27),size = 4, color = "red") +
   geom_text(aes(label = paste0("efficiency =  ", efficiency_p1), x = -2, y = 26),size = 4, color = "red") +
   geom_text(aes(label = paste0("r^2   ", r_squared_p2), x = -2, y = 25),size = 4, color = "green") +
@@ -452,5 +452,8 @@ ggplot() +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Tall Fescue Standard Curves Bad Primers") +
   theme_bw()
 
+###############################################################################################################
+# Making the final graphic
+###############################################################################################################
 
 
