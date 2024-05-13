@@ -4,6 +4,7 @@ library(reshape2)
 library(vegan)
 library(data.table)
 library(patchwork)
+library(ggpubr)
 
 # # # Argument inputs
 # Args <- commandArgs(trailingOnly=TRUE)
@@ -63,6 +64,12 @@ Epichloe_Data_Final_standards_1x1 <- subset(Epichloe_Data_Final_standards, Prime
 Epichloe_Data_Final_standards_1x2 <- subset(Epichloe_Data_Final_standards, Primer_Set == "1x2")
 Epichloe_Data_Final_standards_2x1 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x1")
 Epichloe_Data_Final_standards_2x2 <- subset(Epichloe_Data_Final_standards, Primer_Set == "2x2")
+
+Epichloe_Data_Final_standards_1x1$Primer_Set <- "DMAW1"
+Epichloe_Data_Final_standards_1x2$Primer_Set <- "DMAW2"
+Epichloe_Data_Final_standards_2x1$Primer_Set <- "DMAW3"
+Epichloe_Data_Final_standards_2x2$Primer_Set <- "DMAW4"
+
 
 
 # Getting all variables needed from linear model 1x1
@@ -276,7 +283,7 @@ Epichloe_Data_Problem_stds_standards_TC35X <- subset(Epichloe_Data_Problem_stds_
 Epichloe_Data_Problem_stds_standards_ProA <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "ProA")
 Epichloe_Data_Problem_stds_standards_2x2_2 <- subset(Epichloe_Data_Problem_stds_standards, Primer_Set == "2x2")
 
-
+Epichloe_Data_Problem_stds_standards_TC35X$Primer_Set <- "TC351/TC352"
 # Getting all variables needed from linear model EndoEF
 standard_lm <- lm(Epichloe_Data_Problem_stds_standards_EndoEF$CT ~ Epichloe_Data_Problem_stds_standards_EndoEF$logCon)
 
@@ -496,27 +503,51 @@ Epichloe_Data_Final_standards_1x1
 Epichloe_Data_Final_standards_1x2
 Epichloe_Data_Final_standards_2x1
 Epichloe_Data_Final_standards_2x2
-
-Tall_Fescue_Data_Final_standards_g3p4 
-Tall_Fescue_Data_Final_standards_g3p5 
-Tall_Fescue_Data_Final_standards_tfef_alpha  
-
 Epichloe_Data_Problem_stds_standards_EndoEF 
 Epichloe_Data_Problem_stds_standards_TC35X
 Epichloe_Data_Problem_stds_standards_ProA 
-Epichloe_Data_Problem_stds_standards_2x2_2 
 
-Tall_Fescue_Data_Problem_stds_standards_g3p4_2 
+Tall_Fescue_Data_Final_standards_g3p4 
+Tall_Fescue_Data_Final_standards_g3p5 
+Tall_Fescue_Data_Problem_stds_standards_g3p6 
+Tall_Fescue_Data_Final_standards_tfef_alpha  
 Tall_Fescue_Data_Problem_stds_standards_Tf_Gap 
 Tall_Fescue_Data_Problem_stds_standards_Tf_ACS 
-Tall_Fescue_Data_Problem_stds_standards_g3p6 
 
-
+endo_data <- rbind(Epichloe_Data_Final_standards_1x1, Epichloe_Data_Final_standards_1x2, Epichloe_Data_Final_standards_2x1, Epichloe_Data_Final_standards_2x2, Epichloe_Data_Problem_stds_standards_EndoEF, Epichloe_Data_Problem_stds_standards_TC35X,Epichloe_Data_Problem_stds_standards_ProA)
+fescue_data <- rbind(Tall_Fescue_Data_Final_standards_g3p4, Tall_Fescue_Data_Final_standards_g3p5, Tall_Fescue_Data_Problem_stds_standards_g3p6, Tall_Fescue_Data_Final_standards_tfef_alpha, Tall_Fescue_Data_Problem_stds_standards_Tf_Gap, Tall_Fescue_Data_Problem_stds_standards_Tf_ACS)
 
 color_palette_endo<- c("red", "orange", "yellow")
 color_palette_fescue <- c("blue", "green", "purple")
 
+
 # Endophyte Graphs
+rsquared <- do.call(rbind, by(endo_data, endo_data$Primer_Set, function(x) {
+  fit <- lm(CT ~ logCon, data = x)
+  data.frame(Primer_Set = unique(x$Primer_Set), r_squared = summary(fit)$r.squared)
+}))
+
+ggplot() +
+  geom_point(data = endo_data, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  stat_smooth(method = "lm", se = FALSE, color = "black") +
+  theme_bw() + 
+  labs(color = "Replicate") +
+  geom_text(data = rsquared, aes(label = paste("R^2 =", round(r_squared, digits = 3))), x = Inf, y = -Inf, hjust = 1, vjust = 0) +
+  facet_wrap(vars(Primer_Set), scales = "free") 
+
+
+  
+ggplot(data = endo_data, aes(x = logCon, y = CT, color = factor(Remainder))) +
+  geom_point(shape = 15, size = 3) +
+  stat_smooth(method = "lm", se = FALSE, color = "black") +  # Move stat_smooth before geom_text
+  geom_text(data = rsquared, aes(label = paste("R^2 =", round(r_squared, digits = 3))), x = Inf, y = -Inf, hjust = 1, vjust = 0) +
+  scale_color_manual(values = color_palette_endo) + 
+  theme_bw() + 
+  labs(color = "Replicate") +
+  facet_wrap(vars(Primer_Set), scales = "free")
+
+
 
 plot_DMA1 <- ggplot() +
   geom_point(data = Epichloe_Data_Final_standards_1x1, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
@@ -574,6 +605,14 @@ plot_ProA <- ggplot() +
   labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "ProA.5/ProA.1") +
   theme_bw()
 
+
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(vars(class), scales = "free")
+
+
+
 # Tall Fescue Primers
 
 plot_g3p4 <- ggplot() +
@@ -626,4 +665,4 @@ plot_Tf_Gap  <- ggplot() +
 
 # Making the final large graph
 
-(plot_DMA1 + plot_DMA2 + plot_DMA3 + plot_DMA4 + plot_EndoEF + plot_TC35X + plot_ProA + plot_annotation(title = 'My Combined Plot')) / (plot_g3p4 + plot_g3p5 + plot_g3p6 + plot_tfef_alpha + plot_Tf_ACS + plot_Tf_Gap) 
+(plot_DMA1 + plot_DMA2 + plot_DMA3 + plot_DMA4  + plot_TC35X + plot_ProA + plot_annotation(title = 'My Combined Plot')) / (plot_g3p4 + plot_g3p5 + plot_g3p6 + plot_tfef_alpha + plot_Tf_ACS + plot_Tf_Gap) 
