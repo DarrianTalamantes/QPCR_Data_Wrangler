@@ -3,7 +3,7 @@ library(tidyverse)
 library(reshape2)
 library(vegan)
 library(data.table)
-
+library(patchwork)
 
 # # # Argument inputs
 # Args <- commandArgs(trailingOnly=TRUE)
@@ -171,6 +171,7 @@ standards_summerized_tf <-
 
 #Splitting data by different Primers
 Tall_Fescue_Data_Final_standards_g3p4 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p4")
+Tall_Fescue_Data_Final_standards_g3p4 <- Tall_Fescue_Data_Final_standards_g3p4[-5, ]
 Tall_Fescue_Data_Final_standards_g3p5 <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "g3p5")
 Tall_Fescue_Data_Final_standards_tfef_alpha <- subset(Tall_Fescue_Data_Final_standards, Primer_Set == "tfef_alpha")
 
@@ -387,7 +388,7 @@ standards_summerized_tf_problem <-
 Tall_Fescue_Data_Problem_stds_standards_g3p4_2 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p4")
 Tall_Fescue_Data_Problem_stds_standards_Tf_Gap <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "Tf-Gap")
 Tall_Fescue_Data_Problem_stds_standards_Tf_ACS <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "TF-ACS")
-Tall_Fescue_Data_Problem_stds_standards_p4 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p6")
+Tall_Fescue_Data_Problem_stds_standards_g3p6 <- subset(Tall_Fescue_Data_Problem_stds_standards, Primer_Set == "g3p6")
 
 
 # Getting all variables needed from linear model g3p4_2
@@ -420,19 +421,19 @@ summary_stats_Tf_ACS <- summary(standard_lm)
 r_squared_Tf_ACS <- round(summary_stats_Tf_ACS$r.squared, digits = 3)
 efficiency_Tf_ACS <- round(10^(-1/slope_Tf_ACS) -1, digits = 3)
 
-# Getting all variables needed from linear model p4
-standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_p4$CT ~ Tall_Fescue_Data_Problem_stds_standards_p4$logCon)
+# Getting all variables needed from linear model g3p6
+standard_lm <- lm(Tall_Fescue_Data_Problem_stds_standards_g3p6$CT ~ Tall_Fescue_Data_Problem_stds_standards_g3p6$logCon)
 
-coefficients_p4 <- coef(standard_lm)
-y_intercept_p4 <- coefficients_p4[1]
-slope_p4 <- coefficients_p4[2]
-summary_stats_p4 <- summary(standard_lm)
-r_squared_p4 <- round(summary_stats_p4$r.squared, digits = 3)
-efficiency_p4 <- round(10^(-1/slope_p4) -1, digits = 3)
+coefficients_g3p6 <- coef(standard_lm)
+y_intercept_g3p6 <- coefficients_g3p6[1]
+slope_g3p6 <- coefficients_g3p6[2]
+summary_stats_g3p6 <- summary(standard_lm)
+r_squared_g3p6 <- round(summary_stats_g3p6$r.squared, digits = 3)
+efficiency_g3p6 <- round(10^(-1/slope_g3p6) -1, digits = 3)
 
 # Making a final data table 
-rs <- c(r_squared_g3p4_2,r_squared_Tf_Gap,r_squared_Tf_ACS,r_squared_p4)
-efficiency <- c(efficiency_g3p4_2,efficiency_Tf_Gap,efficiency_Tf_ACS,efficiency_p4)
+rs <- c(r_squared_g3p4_2,r_squared_Tf_Gap,r_squared_Tf_ACS,r_squared_g3p6)
+efficiency <- c(efficiency_g3p4_2,efficiency_Tf_Gap,efficiency_Tf_ACS,efficiency_g3p6)
 epichloe_table <- data.table(r_squared = rs, efficiency = efficiency)
 write.csv(epichloe_table, file = "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Standard_curve_testing/output/Tall_Fescue_Problem_Std_table.csv", row.names = FALSE)
 
@@ -447,14 +448,48 @@ ggplot() +
   geom_text(aes(label = paste0("efficiency =  ", efficiency_Tf_Gap), x = -2, y = 24),size = 4, color = "green") +
   geom_text(aes(label = paste0("r^2   ", r_squared_Tf_ACS), x = -2, y = 23),size = 4, color = "blue") +
   geom_text(aes(label = paste0("efficiency =  ", efficiency_Tf_ACS), x = -2, y = 22),size = 4, color = "blue") +
-  geom_text(aes(label = paste0("r^2   ", r_squared_p4), x = -2, y = 21),size = 4, color = "purple") +
-  geom_text(aes(label = paste0("efficiency =  ", efficiency_p4), x = -2, y = 20),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("r^2   ", r_squared_g3p6), x = -2, y = 21),size = 4, color = "purple") +
+  geom_text(aes(label = paste0("efficiency =  ", efficiency_g3p6), x = -2, y = 20),size = 4, color = "purple") +
   labs(x = "Log Concentration Value", y = "CT Values", title = "Tall Fescue Standard Curves Bad Primers") +
   theme_bw()
 
 ###############################################################################################################
 # Making the final graphic
 ###############################################################################################################
+
+# I need a way to label each biological replicate
+label_replicates <- function(df) {
+  for (i in 1:nrow(df)) {
+    # Extract the second column value and remove the first character
+    column_value <- substr(df[i, "Pos"], 2, nchar(df[i, "Pos"] ))
+    # Convert the modified value to numeric and divide by 3
+    remainder <- as.numeric(column_value) %% 3
+    # Assign the remainder to a new column
+    df$Remainder[i] <- remainder
+  }
+  return(df)
+  
+}
+
+Epichloe_Data_Final_standards_1x1 <- label_replicates(Epichloe_Data_Final_standards_1x1)
+Epichloe_Data_Final_standards_1x2 <- label_replicates(Epichloe_Data_Final_standards_1x2)
+Epichloe_Data_Final_standards_2x1 <- label_replicates(Epichloe_Data_Final_standards_2x1)
+Epichloe_Data_Final_standards_2x2 <- label_replicates(Epichloe_Data_Final_standards_2x2)
+
+Tall_Fescue_Data_Final_standards_g3p4 <- label_replicates(Tall_Fescue_Data_Final_standards_g3p4)
+Tall_Fescue_Data_Final_standards_g3p5 <- label_replicates(Tall_Fescue_Data_Final_standards_g3p5)
+Tall_Fescue_Data_Final_standards_tfef_alpha <- label_replicates(Tall_Fescue_Data_Final_standards_tfef_alpha)
+
+Epichloe_Data_Problem_stds_standards_EndoEF <- label_replicates(Epichloe_Data_Problem_stds_standards_EndoEF)
+Epichloe_Data_Problem_stds_standards_TC35X <- label_replicates(Epichloe_Data_Problem_stds_standards_TC35X)
+Epichloe_Data_Problem_stds_standards_ProA <- label_replicates(Epichloe_Data_Problem_stds_standards_ProA)
+Epichloe_Data_Problem_stds_standards_2x2_2 <- label_replicates(Epichloe_Data_Problem_stds_standards_2x2_2)
+
+Tall_Fescue_Data_Problem_stds_standards_g3p4_2 <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_g3p4_2)
+Tall_Fescue_Data_Problem_stds_standards_Tf_Gap <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_Tf_Gap)
+Tall_Fescue_Data_Problem_stds_standards_Tf_ACS <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_Tf_ACS)
+Tall_Fescue_Data_Problem_stds_standards_g3p6 <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_g3p6)
+
 
 # Data sets needed
 Epichloe_Data_Final_standards_1x1
@@ -471,19 +506,124 @@ Epichloe_Data_Problem_stds_standards_TC35X
 Epichloe_Data_Problem_stds_standards_ProA 
 Epichloe_Data_Problem_stds_standards_2x2_2 
 
-
-
 Tall_Fescue_Data_Problem_stds_standards_g3p4_2 
 Tall_Fescue_Data_Problem_stds_standards_Tf_Gap 
 Tall_Fescue_Data_Problem_stds_standards_Tf_ACS 
-Tall_Fescue_Data_Problem_stds_standards_p4 
+Tall_Fescue_Data_Problem_stds_standards_g3p6 
 
 
 
+color_palette_endo<- c("red", "orange", "yellow")
+color_palette_fescue <- c("blue", "green", "purple")
 
+# Endophyte Graphs
 
+plot_DMA1 <- ggplot() +
+  geom_point(data = Epichloe_Data_Final_standards_1x1, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_1x1), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_1x1), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "DMA1") +
+  theme_bw()
 
+plot_DMA2 <- ggplot() +
+  geom_point(data = Epichloe_Data_Final_standards_1x2, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_1x2), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_1x2), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "DMA2") +
+  theme_bw()
 
+plot_DMA3 <- ggplot() +
+  geom_point(data = Epichloe_Data_Final_standards_2x1, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_2x1), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_2x1), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "DMA3") +
+  theme_bw()
 
+plot_DMA4 <- ggplot() +
+  geom_point(data = Epichloe_Data_Final_standards_2x2, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_2x2), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_2x2), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "DMA4") +
+  theme_bw()
 
+plot_EndoEF <- ggplot() +
+  geom_point(data = Epichloe_Data_Problem_stds_standards_EndoEF, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_EndoEF), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_EndoEF), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "Endo-EF1") +
+  theme_bw()
 
+plot_TC35X <- ggplot() +
+  geom_point(data = Epichloe_Data_Problem_stds_standards_TC35X, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_TC35X), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_TC35X), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "TC351/TC352") +
+  theme_bw()
+
+plot_ProA <- ggplot() +
+  geom_point(data = Epichloe_Data_Problem_stds_standards_ProA, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_endo) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_ProA), x = -2, y = 27),size = 4, color = "red") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_ProA), x = -2, y = 26),size = 4, color = "red") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "ProA.5/ProA.1") +
+  theme_bw()
+
+# Tall Fescue Primers
+
+plot_g3p4 <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Final_standards_g3p4, aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_g3p4), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_g3p4), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "G3P4") +
+  theme_bw()
+
+plot_g3p5  <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Final_standards_g3p5 , aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_g3p5 ), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_g3p5 ), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "G3P5") +
+  theme_bw()
+
+plot_g3p6  <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Problem_stds_standards_g3p6 , aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_g3p6 ), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_g3p6 ), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "G3P6") +
+  theme_bw()
+
+plot_tfef_alpha  <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Final_standards_tfef_alpha , aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_tfef_alpha ), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_tfef_alpha ), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "Tf-EF1-1α") +
+  theme_bw()
+
+plot_Tf_ACS  <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Problem_stds_standards_Tf_ACS , aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_Tf_ACS ), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_Tf_ACS ), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "Tf_ACS") +
+  theme_bw()
+
+plot_Tf_Gap  <- ggplot() +
+  geom_point(data = Tall_Fescue_Data_Problem_stds_standards_Tf_Gap , aes(x = logCon, y = CT, color = factor(Remainder)), shape = 15, size = 3) +
+  scale_color_manual(values = color_palette_fescue) + 
+  geom_text(aes(label = paste0("r^2 = ", r_squared_Tf_Gap ), x = -2, y = 27),size = 4, color = "blue") +
+  geom_text(aes(label = paste0("efficiency = ", efficiency_Tf_Gap ), x = -2, y = 26),size = 4, color = "blue") +
+  labs(x = "Log Concentration Value", y = "CT Values", title = "", color = "Tf_Gap") +
+  theme_bw() 
+
+# Making the final large graph
+
+(plot_DMA1 + plot_DMA2 + plot_DMA3 + plot_DMA4 + plot_EndoEF + plot_TC35X + plot_ProA + plot_annotation(title = 'My Combined Plot')) / (plot_g3p4 + plot_g3p5 + plot_g3p6 + plot_tfef_alpha + plot_Tf_ACS + plot_Tf_Gap) 
