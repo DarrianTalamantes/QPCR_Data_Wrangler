@@ -546,7 +546,7 @@ endo_plot <- ggplot(data = endo_data, aes(x = logCon, y = CT)) +
   theme_bw() + 
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
+  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
   facet_wrap(vars(Primer_Set), scales = "free") 
 
 # Tall Fescue Graph
@@ -557,7 +557,7 @@ fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
   theme_bw() +
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
+  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
   facet_wrap(vars(Primer_Set), scales = "free") 
 
 
