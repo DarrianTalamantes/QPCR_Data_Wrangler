@@ -1,4 +1,4 @@
-# Objective : This code will combine all the data using my original standards find a correlation between them
+# Objective : This code uses the alkaloid data and the biomass data from 2024 to find correlations between them.
 
 # Import libraries
 library(tidyverse)
@@ -39,11 +39,46 @@ raw_all$EoverTF <- (raw_all$ngDNA_E / raw_all$ngDNA_TF)
 # linear models
 #############################################################
 
-DNAbyAlkaloid <- lm(ngDNA_TF ~ EoverTF ,data = raw_all) 
-summary_model <- summary(DNAbyAlkaloid)
+AlkaloidbyDNA <- lm(ppbAlk_con ~ EoverTF ,data = raw_all) 
+summary_model <- summary(AlkaloidbyDNA)
 rsquared <- summary_model$r.squared
 
-####################################
+#####################################
+# Residual data extraction
+#####################################
+
+# We want to use the entire data set and take out everything that effects CT values.
+normalized_EoTF <- lm(EoverTF ~ Plate, data = raw_all)
+summary(normalized_EoTF) # The filtered data
+
+# removing the residuals from the data by getting the mean then subtracting the residuals
+adjustedEoTF <- resid(normalized_EoTF)
+adjusted_EoverTF <- mean(raw_all$EoverTF) + adjustedEoTF # Optionally adding back the mean to make numbers meaningful. Could just use residuals
+
+# Removing residuals from data
+data1 <- data.frame(raw_all$Treatment)
+data1$adjusted_EoverTF <- adjusted_EoverTF
+data2 <- data.frame(raw_all$Treatment, raw_all$ppbAlk_con)
+
+names(data1)[names(data1) == "raw_all.Treatment"] <- "Treatment"
+names(data2)[names(data2) == "raw_all.Treatment"] <- "Treatment"
+
+data_no_residuals <- merge(data1, data2, by = "Treatment", all = TRUE)
+
+# Renaming Columns
+new_names <- c("Treatment", "EoTF_ResidualRemoved", "ppbAlkiloids")
+names(data_no_residuals) <- new_names
+
+# Adding in metadata
+metadata <- subset(raw_all, select = (c(Plate, Treatment)))
+data_no_residuals <- merge(data_no_residuals, metadata, by = c("Treatment"))
+
+# getting r squared 
+model_residual <- lm(ppbAlkiloids ~ EoTF_ResidualRemoved ,data = data_no_residuals) 
+summary_model_residual <- summary(model_residual)
+rsquared_residual <- summary_model_residual$r.squared
+
+#####################################
 # Making correlation graphs
 #####################################
 
@@ -62,7 +97,14 @@ ggplot(data = raw_all, aes(x = EoverTF, y = ppbAlk_con)) +
            hjust = 1.1, vjust = -0.5, size = 5, color = "black") +
   theme_bw()
 
-
+# residual plot
+ggplot(data = data_no_residuals, aes(x = EoTF_ResidualRemoved, y = ppbAlkiloids)) +
+  geom_point(data = data_no_residuals, aes(x = EoTF_ResidualRemoved, y = ppbAlkiloids, color = Plate), size = 2) +
+  labs(x = "Endophyte over Fescue ng DNA", y = "Alkaloid ppb", title = "Alkaloid Concentration vs Endophyte Biomass Estimation") +
+  geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  annotate("text", x = Inf, y = -Inf, label = paste("R² =", round(rsquared_residual, 3)), 
+           hjust = 1.1, vjust = -0.5, size = 5, color = "black") +
+  theme_bw()
 
 
 
