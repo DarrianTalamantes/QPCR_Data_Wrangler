@@ -497,6 +497,10 @@ Tall_Fescue_Data_Problem_stds_standards_Tf_Gap <- label_replicates(Tall_Fescue_D
 Tall_Fescue_Data_Problem_stds_standards_Tf_ACS <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_Tf_ACS)
 Tall_Fescue_Data_Problem_stds_standards_g3p6 <- label_replicates(Tall_Fescue_Data_Problem_stds_standards_g3p6)
 
+# Fixing labels in g3px primers to G3Px
+Tall_Fescue_Data_Final_standards_g3p4$Primer_Set <- "G3P4"
+Tall_Fescue_Data_Final_standards_g3p5$Primer_Set <- "G3P4"
+Tall_Fescue_Data_Problem_stds_standards_g3p6$Primer_Set <- "G3P6"
 
 # Data sets needed
 Epichloe_Data_Final_standards_1x1
@@ -527,7 +531,7 @@ rsquared_endo <- do.call(rbind, by(endo_data, endo_data$Primer_Set, function(x) 
   data.frame(Primer_Set = unique(x$Primer_Set), r_squared = summary(fit)$r.squared)
 }))
 rsquared_endo$label <- sapply(rsquared_endo$r_squared, function(x) {
-  bquote(italic(R)^2 == .(round(x, 3)))
+  bquote(italic(r)^2 == .(round(x, 3)))
 })
 rsquared_tf <- do.call(rbind, by(fescue_data, fescue_data$Primer_Set, function(x) {
   fit <- lm(CT ~ logCon, data = x)
@@ -535,7 +539,7 @@ rsquared_tf <- do.call(rbind, by(fescue_data, fescue_data$Primer_Set, function(x
 }))
 
 rsquared_tf$label <- sapply(rsquared_tf$r_squared, function(x) {
-  bquote(italic(R)^2 == .(round(x, 3)))
+  bquote(italic(r)^2 == .(round(x, 3)))
 })
 
 # Endophyte graph
@@ -546,7 +550,7 @@ endo_plot <- ggplot(data = endo_data, aes(x = logCon, y = CT)) +
   theme_bw() + 
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
+  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
   facet_wrap(vars(Primer_Set), scales = "free") 
 
 # Tall Fescue Graph
@@ -557,7 +561,7 @@ fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
   theme_bw() +
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
+  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
   facet_wrap(vars(Primer_Set), scales = "free") 
 
 
