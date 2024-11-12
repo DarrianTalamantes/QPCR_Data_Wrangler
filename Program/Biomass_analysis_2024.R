@@ -10,11 +10,13 @@ library(ggpubr)
 all_2x2_loc <- "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Program/output/Final_Data_2024/all_2x2_2024.csv"
 all_g3p4_loc <- "/home/darrian/Desktop/UGA/QPCR_Data_Wrangler/QPCR_Data_Wrangler/Program/output/Final_Data_2024/all_g3p4_2024.csv"
 alkaloid <- "/home/darrian/Desktop/UGA/Tall_Fescue/Alkaloid_Data/Alkaloid_concentrations_2024.csv"
-
+parents_loc <- "/home/darrian/Desktop/UGA/Wallace_Lab/Plant_Info/Match_Parent_Data/usable_predicted_parents_double.csv"
 
 all_2x2 <- read.csv(all_2x2_loc, header = TRUE)
 all_g3p4 <- read.csv(all_g3p4_loc, header = TRUE)
 alkaloid <- read.csv(alkaloid, header = TRUE)
+parents <- read.csv(parents_loc, header = TRUE)
+
 
 # Fixing data to be agglomerated together
 all_2x2 <- subset(all_2x2, select = -X)
@@ -69,9 +71,28 @@ data_no_residuals <- merge(data1, data2, by = "Treatment", all = TRUE)
 new_names <- c("Treatment", "EoTF_ResidualRemoved", "ppbAlkiloids")
 names(data_no_residuals) <- new_names
 
-# Adding in metadata
+# Adding in metadata and parents
 metadata <- subset(raw_all, select = (c(Plate, Treatment)))
 data_no_residuals <- merge(data_no_residuals, metadata, by = c("Treatment"))
+head(parents)
+parents$Origin <- paste(parents$X0, parents$X1, sep = "X")
+parents2 <- parents[, c(1, 2, 3, ncol(parents))]
+# Split the string by "X"
+parts <- strsplit(parents2$Origin, "X")
+# Sort the numeric parts and paste them back together with "X" in between
+parents2$Origin <- sapply(parts, function(x) paste(sort(as.numeric(x)), collapse = "X"))
+parents2 <- parents2[, c(1, 4)]
+colnames(parents2)[colnames(parents2) == "X"] <- "Treatment"
+# Adding in parents to data
+df <- data.frame(
+  Treatment = c("310", "314", "312"),
+  Origin = c("Parent", "Parent", "Parent")
+)
+parents2 <- rbind(parents2,df)
+data_no_residuals <- merge(data_no_residuals, parents2, by = c("Treatment"))
+
+
+
 
 # getting r squared 
 model_residual <- lm(ppbAlkiloids ~ EoTF_ResidualRemoved ,data = data_no_residuals) 

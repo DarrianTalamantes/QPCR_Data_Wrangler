@@ -550,8 +550,8 @@ endo_plot <- ggplot(data = endo_data, aes(x = logCon, y = CT)) +
   theme_bw() + 
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
-  facet_wrap(vars(Primer_Set), scales = "free") 
+  geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
+  facet_wrap(vars(Primer_Set), scales = "free", ncol = 5) 
 
 # Tall Fescue Graph
 fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
@@ -561,14 +561,14 @@ fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
   theme_bw() +
   labs(x = "", y = "") +
   labs(color = "Replicate") +
-  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 3, vjust = -1, parse = TRUE) +
-  facet_wrap(vars(Primer_Set), scales = "free") 
+  geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
+  facet_wrap(vars(Primer_Set), scales = "free", ncol = 5) 
 
 
-big_plot <- ggarrange(fescue_plot, endo_plot, ncol=1, nrow=2, heights = c(.4, .6))
+big_plot <- ggarrange(fescue_plot, endo_plot, ncol=1, nrow=2, heights = c(.33, .67)) 
 annotate_figure(big_plot,
-                bottom = text_grob("Log DNA Concentration", size = 14),
-                left = text_grob("CT Value", size = 14, rot = 90),
+                bottom = text_grob("Log DNA Concentration (ng/μl)", size = 14),
+                left = text_grob("CT Value (cycles)", size = 14, rot = 90),
                 top = text_grob("Primer Standard Curves", size = 20))
 
 
