@@ -499,9 +499,11 @@ Tall_Fescue_Data_Problem_stds_standards_g3p6 <- label_replicates(Tall_Fescue_Dat
 
 # Fixing labels in g3px primers to G3Px
 Tall_Fescue_Data_Final_standards_g3p4$Primer_Set <- "G3P4"
-Tall_Fescue_Data_Final_standards_g3p5$Primer_Set <- "G3P4"
+Tall_Fescue_Data_Final_standards_g3p5$Primer_Set <- "G3P5"
 Tall_Fescue_Data_Problem_stds_standards_g3p6$Primer_Set <- "G3P6"
 
+Tall_Fescue_Data_Final_standards_tfef_alpha$Primer_Set <- "Tf-EF1 Alpha"
+Tall_Fescue_Data_Problem_stds_standards_Tf_ACS$Primer_Set <- "Tf-ACS"
 # Data sets needed
 Epichloe_Data_Final_standards_1x1
 Epichloe_Data_Final_standards_1x2
@@ -565,7 +567,7 @@ fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
   facet_wrap(vars(Primer_Set), scales = "free", ncol = 5) 
 
 
-big_plot <- ggarrange(fescue_plot, endo_plot, ncol=1, nrow=2, heights = c(.33, .67)) 
+big_plot <- ggarrange(fescue_plot, endo_plot, ncol=1, nrow=2, heights = c(.5, .5)) 
 annotate_figure(big_plot,
                 bottom = text_grob("Log DNA Concentration (ng/μl)", size = 14),
                 left = text_grob("CT Value (cycles)", size = 14, rot = 90),
