@@ -553,7 +553,7 @@ endo_plot <- ggplot(data = endo_data, aes(x = logCon, y = CT)) +
   labs(x = "", y = "") +
   labs(color = "Replicate") +
   geom_text(data = rsquared_endo, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
-  facet_wrap(vars(Primer_Set), scales = "free", ncol = 5) 
+  facet_wrap(vars(Primer_Set), scales = "free", ncol = 4) 
 
 # Tall Fescue Graph
 fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
@@ -564,7 +564,7 @@ fescue_plot <- ggplot(data = fescue_data, aes(x = logCon, y = CT)) +
   labs(x = "", y = "") +
   labs(color = "Replicate") +
   geom_text(data = rsquared_tf, aes(label = label), x = Inf, y = -Inf, hjust = 2, vjust = -1, parse = TRUE) +
-  facet_wrap(vars(Primer_Set), scales = "free", ncol = 5) 
+  facet_wrap(vars(Primer_Set), scales = "free", ncol = 4) 
 
 
 big_plot <- ggarrange(fescue_plot, endo_plot, ncol=1, nrow=2, heights = c(.5, .5)) 
